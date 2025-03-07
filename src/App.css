@@ -1,4 +1,4 @@
-.app-container {
+.app-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6,5 +6,68 @@
   height: 100vh;
   background-color: greenyellow;
   color: chocolate;
-  font-size: 5em;
+  font-size: 1em;
+}
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: greenyellow;
+  color: chocolate;
+  font-size: 1em;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.login-whisperchat-welcome {
+  margin-bottom: 0%;
+  font-size: 3em;
+}
+
+.login-whisperchat-subtext {
+  margin-top: 0%;
+  color: blueviolet;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  background-color: whitesmoke;
+  padding-top: 1em;
+  padding-left: 2em;
+  padding-bottom: 2em;
+  padding-right: 2em;
+  border-radius: 30px;
+}
+
+.login-email-label {
+  padding-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.login-email-input {
+  border-radius: 10px;
+  padding-top: 0.5em;
+  padding-left: 1em;
+  padding-bottom: 0.5em;
+  padding-right: 1em;
+  width: 20em;
+}
+
+.login-password-label {
+  padding-top: 1em;
+  padding-bottom: 0.5em;
+  font-weight: bold;
+}
+
+.login-password-input {
+  border-radius: 10px;
+  padding-top: 0.5em;
+  padding-left: 1em;
+  padding-bottom: 0.5em;
+  padding-right: 1em;
+  width: 20em;
 }

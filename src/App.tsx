@@ -3,7 +3,9 @@ import "./App.css";
 function App() {
   return (
     <>
-      <div className="app-container">Whisperchat</div>
+      <div className="app-page">
+        <h2>/ route</h2>
+      </div>
     </>
   );
 }
