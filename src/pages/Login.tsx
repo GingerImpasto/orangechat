@@ -1,3 +1,5 @@
+import FormField from "../components/form-field";
+
 function Login() {
   return (
     <>
@@ -7,10 +9,25 @@ function Login() {
           Login to chat with friends!
         </h3>
         <form className="login-form">
-          <label className="login-email-label">Email</label>
-          <input className="login-email-input" type="text"></input>
-          <label className="login-password-label">Password</label>
-          <input className="login-password-input" type="password"></input>
+          <FormField
+            htmlFor="email"
+            label="Email"
+            type="text"
+            value={""}
+            onChange={() => {}}
+          />
+          <FormField
+            htmlFor="password"
+            label="Password"
+            type="password"
+            value={""}
+            onChange={() => {}}
+          />
+          <input
+            type="submit"
+            value="Sign In"
+            className="login-submit-button"
+          />
         </form>
       </div>
     </>

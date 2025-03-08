@@ -29,7 +29,7 @@
 
 .login-whisperchat-subtext {
   margin-top: 0%;
-  color: blueviolet;
+  color: black;
 }
 
 .login-form {
@@ -43,31 +43,41 @@
   border-radius: 30px;
 }
 
-.login-email-label {
-  padding-bottom: 0.5em;
-  font-weight: bold;
-}
-
-.login-email-input {
-  border-radius: 10px;
-  padding-top: 0.5em;
-  padding-left: 1em;
-  padding-bottom: 0.5em;
-  padding-right: 1em;
-  width: 20em;
-}
-
-.login-password-label {
+.login-label {
   padding-top: 1em;
   padding-bottom: 0.5em;
   font-weight: bold;
 }
 
-.login-password-input {
+.login-input {
   border-radius: 10px;
   padding-top: 0.5em;
   padding-left: 1em;
   padding-bottom: 0.5em;
   padding-right: 1em;
   width: 20em;
+}
+
+.login-submit-button {
+  margin-top: 2em;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1em;
+  border: none;
+  width: 10em;
+  border-radius: 15px;
+  font-weight: bold;
+  background-color: yellow;
+  font-family: "Courier New", Courier, monospace;
+  color: blue;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-submit-button:hover {
+  background-color: gold;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  cursor: pointer;
 }
