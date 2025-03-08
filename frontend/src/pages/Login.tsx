@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FormField from "../components/form-field";
 
 function Login() {
@@ -20,6 +20,15 @@ function Login() {
     }));
   };
 
+  useEffect(() => {}, []);
+
+  const fetchAPIData = () => {
+    fetch("http://localhost:5000/users/test")
+      .then((response) => response.json())
+      .then((data) => console.log(data))
+      .catch((error) => console.error("Error fetching data:", error));
+  };
+
   return (
     <>
       <div className="login-page">
@@ -28,6 +37,9 @@ function Login() {
           onClick={() => setAction(action === "login" ? "register" : "login")}
         >
           {action === "login" ? "Sign up" : "Login"}
+        </button>
+        <button className="api-test-button" onClick={() => fetchAPIData()}>
+          Call API
         </button>
         <h2 className="login-whisperchat-welcome">Welcome to Whisperchat</h2>
         <h3 className="login-whisperchat-subtext">

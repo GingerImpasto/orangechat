@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import userRoutes from "./routes/apis";
 
 const app = express();
 const PORT = 5000;
@@ -8,20 +9,10 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Define a type for your data
-type ApiResponse = {
-  message: string;
-};
-
-// Example route
-app.get("/api/data", (req: Request, res: Response<ApiResponse>) => {
-  const response: ApiResponse = {
-    message: "Hello from the TypeScript backend!",
-  };
-  res.json(response);
-});
+app.use("/users", userRoutes);
 
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Supabase URL is ${process.env.SUPABASE_PROJECT_URL}`);
 });
