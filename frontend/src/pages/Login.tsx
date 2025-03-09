@@ -1,14 +1,28 @@
 import { useEffect, useState } from "react";
 import FormField from "../components/form-field";
+import {
+  validateEmail,
+  validatePassword,
+  validateName,
+} from "../utils/validators";
+
+interface FormData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
 
 function Login() {
   const [action, setAction] = useState("login");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
     firstName: "",
     lastName: "",
   });
+
+  const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -18,39 +32,96 @@ function Login() {
       ...form,
       [field]: event.target.value,
     }));
+
+    // Validate the field and update errors
+    let error: string | undefined;
+    switch (field) {
+      case "email":
+        error = validateEmail(event.target.value);
+        break;
+      case "password":
+        error = validatePassword(event.target.value);
+        break;
+      case "firstName":
+        error = validateName(event.target.value, "First name");
+        break;
+      case "lastName":
+        error = validateName(event.target.value, "Last name");
+        break;
+      default:
+        break;
+    }
+
+    // Update the errors state
+    setErrors({
+      ...errors,
+      [field]: error,
+    });
   };
 
-  useEffect(() => {}, []);
-
   const fetchAPIData = () => {
-    fetch("http://localhost:5000/users/test")
+    fetch("http://localhost:5000/login/test")
       .then((response) => response.json())
       .then((data) => console.log(data))
       .catch((error) => console.error("Error fetching data:", error));
   };
 
+  // Check if the form is valid before submission
+  const isFormValid = (): boolean => {
+    if (action === "login") {
+      return (
+        !validateEmail(formData.email) && !validatePassword(formData.password)
+      );
+    } else {
+      return (
+        !validateEmail(formData.email) &&
+        !validatePassword(formData.password) &&
+        !validateName(formData.firstName, "First name") &&
+        !validateName(formData.lastName, "Last name")
+      );
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost:5000/users/submit-form", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+    if (isFormValid()) {
+      // Form is valid, proceed with submission
+      console.log("Form is valid, submitting...", formData);
+      // Add your submission logic here
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Success:", result);
-      } else {
-        console.error("Error:", response.statusText);
+      try {
+        const response = await fetch(
+          `http://localhost:5000/login/submit-${
+            action === "login" ? "login" : "signup"
+          }-form`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Success:", result);
+        } else {
+          console.error("Error:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error:", error);
       }
-    } catch (error) {
-      console.error("Error:", error);
+    } else {
+      // Form is invalid, show error messages
+      console.error("Form is invalid");
     }
   };
+
+  useEffect(() => {
+    console.log("Errors updated:", errors);
+  }, [errors]); // This effect runs whenever `errors` changes
 
   return (
     <>
@@ -79,6 +150,7 @@ function Login() {
             onChange={(e) => {
               handleInputChange(e, "email");
             }}
+            error={errors.email}
           />
           <FormField
             htmlFor="password"
@@ -86,6 +158,7 @@ function Login() {
             type="password"
             value={formData.password}
             onChange={(e) => handleInputChange(e, "password")}
+            error={errors.password}
           />
           {action !== "login" ? (
             <>
@@ -97,6 +170,7 @@ function Login() {
                 onChange={(e) => {
                   handleInputChange(e, "firstName");
                 }}
+                error={errors.firstName}
               />
               <FormField
                 htmlFor="lastName"
@@ -106,13 +180,18 @@ function Login() {
                 onChange={(e) => {
                   handleInputChange(e, "lastName");
                 }}
+                error={errors.lastName}
               />
             </>
           ) : (
             ""
           )}
 
-          <button type="submit" className="login-submit-button">
+          <button
+            type="submit"
+            className="login-submit-button"
+            disabled={!isFormValid()}
+          >
             {action === "login" ? "Sign In" : "Create account"}
           </button>
         </form>

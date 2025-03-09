@@ -75,7 +75,12 @@
     transform 0.2s ease;
 }
 
-.login-submit-button:hover {
+.login-submit-button:disabled {
+  background-color: #cccccc; /* Gray color for disabled state */
+  cursor: not-allowed;
+}
+
+.login-submit-button:hover:not(:disabled) {
   background-color: gold;
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-5px);

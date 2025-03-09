@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 interface FormFieldProps {
   htmlFor: string;
   label: string;
@@ -17,12 +15,6 @@ function FormField({
   onChange = () => {},
   error = "",
 }: FormFieldProps) {
-  const [errorText, setErrorText] = useState(error);
-
-  useEffect(() => {
-    setErrorText(error);
-  }, [error]);
-
   return (
     <>
       <label className="login-label" htmlFor={htmlFor}>
@@ -31,14 +23,15 @@ function FormField({
       <input
         onChange={(e) => {
           onChange(e);
-          setErrorText("");
         }}
         type={type}
         value={value}
         name={htmlFor}
         className="login-input"
       />
-      <div>{errorText || ""}</div>
+      {error && (
+        <span style={{ color: "red", fontSize: "0.875rem" }}>{error}</span>
+      )}
     </>
   );
 }

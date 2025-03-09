@@ -1,6 +1,7 @@
 import express from "express";
-const router = express.Router();
 import supabase from "../supabase-client";
+
+const router = express.Router();
 
 // Example route
 router.get("/test", async (req, res) => {
@@ -23,26 +24,30 @@ router.get("/test", async (req, res) => {
 });
 
 // Handle form submission
-router.post("/submit-form", (req, res) => {
-  const { firstName, email } = req.body;
+router.post("/submit-login-form", (req, res) => {
+  const { email, password } = req.body;
 
   // Process the data (e.g., save to a database)
-  console.log("Received form data:", { firstName, email });
+  console.log("Received login form data:", { email, password });
 
   // Send a response back to the client
   res.json({
-    message: "Form data received successfully!",
-    data: { firstName, email },
+    message: "Login form data received successfully!",
+    data: { email, password },
   });
 });
 
-// Define your API routes here
-router.get("/users", (req, res) => {
-  res.send("List of users");
-});
+router.post("/submit-signup-form", (req, res) => {
+  const { email, password } = req.body;
 
-router.post("/users", (req, res) => {
-  res.send("Create a new user");
+  // Process the data (e.g., save to a database)
+  console.log("Received signup form data:", { email, password });
+
+  // Send a response back to the client
+  res.json({
+    message: "Signup form data received successfully!",
+    data: { email, password },
+  });
 });
 
 // Export the router

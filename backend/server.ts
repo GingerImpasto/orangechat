@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import userRoutes from "./routes/apis";
+import loginRoutes from "./routes/login";
 
 const app = express();
 const PORT = 5000;
@@ -9,7 +9,7 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-app.use("/users", userRoutes);
+app.use("/login", loginRoutes);
 
 // Start the server
 app.listen(PORT, () => {
