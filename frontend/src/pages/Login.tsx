@@ -29,6 +29,29 @@ function Login() {
       .catch((error) => console.error("Error fetching data:", error));
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:5000/users/submit-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Success:", result);
+      } else {
+        console.error("Error:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <>
       <div className="login-page">
@@ -47,7 +70,7 @@ function Login() {
             ? "Login to chat with friends!"
             : "Create an account to connect with friends!"}
         </h3>
-        <form className="login-form">
+        <form className="login-form" onSubmit={handleSubmit}>
           <FormField
             htmlFor="email"
             label="Email"
@@ -89,11 +112,9 @@ function Login() {
             ""
           )}
 
-          <input
-            type="submit"
-            value={action === "login" ? "Sign In" : "Create account"}
-            className="login-submit-button"
-          />
+          <button type="submit" className="login-submit-button">
+            {action === "login" ? "Sign In" : "Create account"}
+          </button>
         </form>
       </div>
     </>

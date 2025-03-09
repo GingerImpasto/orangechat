@@ -22,6 +22,20 @@ router.get("/test", async (req, res) => {
   }
 });
 
+// Handle form submission
+router.post("/submit-form", (req, res) => {
+  const { firstName, email } = req.body;
+
+  // Process the data (e.g., save to a database)
+  console.log("Received form data:", { firstName, email });
+
+  // Send a response back to the client
+  res.json({
+    message: "Form data received successfully!",
+    data: { firstName, email },
+  });
+});
+
 // Define your API routes here
 router.get("/users", (req, res) => {
   res.send("List of users");
