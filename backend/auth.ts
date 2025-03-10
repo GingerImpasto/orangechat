@@ -1,17 +1,12 @@
-import supabase from "./supabase-client";
-import { RegisterForm } from "./types";
+import session from "express-session";
 
-export const checkUserExistence = async (form: RegisterForm) => {
-  const { data, error } = await supabase
-    .from("User")
-    .select("*")
-    .eq("email", form.email)
-    .limit(1);
-
-  if (error) {
-    console.error("Error checking row:", error);
-    return false;
-  }
-
-  return data.length > 0;
-};
+export const cookieSession = session({
+  secret: `${process.env.SESSION_SECRET}`, // Replace with a strong secret key
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
+    secure: process.env.NODE_ENV === "production", // Use HTTPS in production
+    maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day
+  },
+});

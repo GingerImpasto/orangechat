@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import FormField from "../components/form-field";
 import {
   validateEmail,
@@ -23,6 +24,8 @@ function Login() {
   });
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
+
+  const navigate = useNavigate();
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -101,16 +104,28 @@ function Login() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(formData),
+            credentials: "include",
           }
         );
 
+        const result = await response.json();
+
         if (response.ok) {
-          const result = await response.json();
           console.log("Success:", result);
+          navigate("/");
         } else {
-          console.error("Error:", response.statusText);
+          // Handle bad request (e.g., user already exists)
+          console.error(result.error);
+
+          setErrors({
+            ...errors,
+            ["email"]: result.error,
+          });
+
+          return { success: false, message: result.error };
         }
       } catch (error) {
+        console.log("has error");
         console.error("Error:", error);
       }
     } else {
@@ -119,9 +134,7 @@ function Login() {
     }
   };
 
-  useEffect(() => {
-    console.log("Errors updated:", errors);
-  }, [errors]); // This effect runs whenever `errors` changes
+  useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
 
   return (
     <>

@@ -29,9 +29,7 @@ function FormField({
         name={htmlFor}
         className="login-input"
       />
-      {error && (
-        <span style={{ color: "red", fontSize: "0.875rem" }}>{error}</span>
-      )}
+      {error && <div className="login-error">{error}</div>}
     </>
   );
 }

@@ -2,25 +2,51 @@ import supabase from "./supabase-client";
 import { RegisterForm } from "./types";
 import bcrypt from "bcryptjs";
 
-export const createUser = async (user: RegisterForm) => {
-  const passwordHash = await bcrypt.hash(user.password, 10);
+// Function to check if a user exists
+export const checkUserExistence = async (email: string): Promise<boolean> => {
+  const { data: existingUser, error: userError } = await supabase
+    .from("User")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
 
-  const { data, error } = await supabase.from("User").insert([
-    {
-      email: user.email,
-      password: passwordHash,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    },
-  ]);
-
-  if (error) {
-    console.error("Error creating row:", error);
-    return null;
+  if (userError) {
+    throw new Error(userError.message);
   }
 
-  const newUser = data ? data[0] : "";
-  console.log("User created successfully:", newUser);
-  //return { id: newUser.id, email: newUser.email };
+  return !!existingUser; // Returns true if user exists, false otherwise
+};
+
+// Function to create a new user
+export const createUser = async (userData: RegisterForm) => {
+  // Hash the password
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+
+  const { data: newUser, error: createError } = await supabase
+    .from("User")
+    .insert([{ ...userData, password: hashedPassword }]) // Store hashed password
+    .select()
+    .single();
+
+  if (createError) {
+    throw new Error(createError.message);
+  }
+
   return newUser;
+};
+
+export const fetchUser = async (email: string) => {
+  const { data: user, error } = await supabase
+    .from("User")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  console.log("User is ", user);
+  return user;
 };
