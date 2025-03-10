@@ -11,9 +11,6 @@ router.post("/logout", (req: any, res: any) => {
     }
     res.clearCookie("connect.sid"); // Clear the session cookie
 
-    // Log the session cookie after destroying it
-    console.log("Session Cookie After Logout:", req.headers.cookie);
-
     res.status(200).json({ message: "Logout successful" });
   });
 });

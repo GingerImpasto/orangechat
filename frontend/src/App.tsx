@@ -1,8 +1,10 @@
 import "./App.css";
 import { useNavigate } from "react-router";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -17,7 +19,7 @@ function App() {
         console.error("Logout failed:", result.error);
       } else {
         // Redirect to the login page after successful logout
-        console.log("Logout successful");
+        logout();
         navigate("/login");
       }
     } catch (error) {

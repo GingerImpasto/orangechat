@@ -4,9 +4,16 @@ import bcrypt from "bcryptjs";
 
 const router = express.Router();
 
+router.get("/check-auth", (req: any, res: any) => {
+  if (req.session.user) {
+    res.status(200).json({ isAuthenticated: true });
+  } else {
+    res.status(401).json({ isAuthenticated: false });
+  }
+});
+
 // Route to handle user login
 router.post("/submit-login-form", async (req: any, res: any) => {
-  console.log("Inside login route");
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -48,7 +55,6 @@ router.post("/submit-login-form", async (req: any, res: any) => {
 });
 
 router.post("/submit-signup-form", async (req: any, res: any) => {
-  console.log("Inside signup route");
   const { email, password, firstName, lastName } = req.body;
 
   if (!email || !password || !firstName || !lastName) {

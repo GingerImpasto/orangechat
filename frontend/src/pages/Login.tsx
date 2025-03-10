@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Navigate } from "react-router";
 import FormField from "../components/form-field";
 import {
   validateEmail,
   validatePassword,
   validateName,
 } from "../utils/validators";
+import { useAuth } from "../context/AuthContext";
+import Loader from "../components/Loader";
 
 interface FormData {
   email: string;
@@ -26,6 +28,7 @@ function Login() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -112,6 +115,7 @@ function Login() {
 
         if (response.ok) {
           console.log("Success:", result);
+          login();
           navigate("/");
         } else {
           // Handle bad request (e.g., user already exists)
@@ -135,6 +139,14 @@ function Login() {
   };
 
   useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
+
+  if (isLoading) {
+    return <Loader />; // Show the loader while checking authentication
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <>
