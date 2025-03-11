@@ -8,6 +8,7 @@ import {
 } from "../utils/validators";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";
+import "../login.css";
 
 interface FormData {
   email: string;
@@ -28,7 +29,7 @@ function Login() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading, login, setUser } = useAuth();
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -63,13 +64,6 @@ function Login() {
       ...errors,
       [field]: error,
     });
-  };
-
-  const fetchAPIData = () => {
-    fetch("http://localhost:5000/login/test")
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error("Error fetching data:", error));
   };
 
   // Check if the form is valid before submission
@@ -116,6 +110,7 @@ function Login() {
         if (response.ok) {
           console.log("Success:", result);
           login();
+          setUser(result.user);
           navigate("/");
         } else {
           // Handle bad request (e.g., user already exists)
@@ -156,9 +151,6 @@ function Login() {
           onClick={() => setAction(action === "login" ? "register" : "login")}
         >
           {action === "login" ? "Sign up" : "Login"}
-        </button>
-        <button className="api-test-button" onClick={() => fetchAPIData()}>
-          Call API
         </button>
         <h2 className="login-whisperchat-welcome">Welcome to Whisperchat</h2>
         <h3 className="login-whisperchat-subtext">

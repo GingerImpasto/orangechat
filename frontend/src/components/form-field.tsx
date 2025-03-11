@@ -26,7 +26,7 @@ function FormField({
         }}
         type={type}
         value={value}
-        name={htmlFor}
+        id={htmlFor}
         className="login-input"
       />
       {error && <div className="login-error">{error}</div>}

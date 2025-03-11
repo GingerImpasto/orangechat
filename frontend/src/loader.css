@@ -4,6 +4,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh; /* Full viewport height */
+  width: 100vw;
   background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
 }
 

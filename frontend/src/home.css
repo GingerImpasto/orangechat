@@ -1,0 +1,91 @@
+.app-page {
+  display: flex;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: greenyellow;
+  color: chocolate;
+  font-size: 1em;
+}
+
+.user-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 250px;
+  background-color: #2f3136;
+  color: white;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.user-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-row:hover {
+  background-color: #40444b;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/*
+.logout-button {
+  background-color: #7289da;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 16px;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #677bc4;
+}
+*/
+
+.logout-button {
+  padding: 1em;
+  margin: 0 auto;
+  border: none;
+  width: 10em;
+  border-radius: 15px;
+  font-weight: bold;
+  background-color: yellow;
+  font-family: "Courier New", Courier, monospace;
+  color: blue;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: gold;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  cursor: pointer;
+}

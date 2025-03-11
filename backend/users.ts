@@ -50,3 +50,24 @@ export const fetchUser = async (email: string) => {
   console.log("User is ", user);
   return user;
 };
+
+// Function to fetch users from Supabase, excluding the user with the given email
+export const getOtherUsers = async (email: string) => {
+  try {
+    // Fetch all users except the one with the current user's ID
+    const { data: users, error: usersError } = await supabase
+      .from("User")
+      .select("*")
+      .neq("email", email) // Exclude the current user
+      .order("firstName", { ascending: true }); // Sort by firstName
+
+    if (usersError) {
+      throw usersError;
+    }
+
+    return users;
+  } catch (error) {
+    console.error("Error in getOtherUsers:", error);
+    throw error;
+  }
+};

@@ -6,7 +6,8 @@ const router = express.Router();
 
 router.get("/check-auth", (req: any, res: any) => {
   if (req.session.user) {
-    res.status(200).json({ isAuthenticated: true });
+    console.log("session user is ", req.session.user);
+    res.status(200).json({ isAuthenticated: true, user: req.session.user });
   } else {
     res.status(401).json({ isAuthenticated: false });
   }
@@ -36,7 +37,12 @@ router.post("/submit-login-form", async (req: any, res: any) => {
     }
 
     // Create a session for the authenticated user
-    req.session.user = { id: user.id, email: user.email };
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
 
     // Log the Set-Cookie header
     res.on("finish", () => {
@@ -46,7 +52,12 @@ router.post("/submit-login-form", async (req: any, res: any) => {
     // Return a success response
     res.status(200).json({
       message: "Login successful",
-      user: { id: user.id, email: user.email },
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
     });
   } catch (error) {
     console.error("Error:", error);
