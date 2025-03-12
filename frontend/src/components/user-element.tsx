@@ -1,20 +1,15 @@
 import React from "react";
 import "../home.css"; // Import the CSS file
-
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
+import { UserType } from "../types";
 
 interface UserElementProps {
-  user: User;
+  user: UserType;
+  onClick: () => void;
 }
 
-const UserElement: React.FC<UserElementProps> = ({ user }) => {
+const UserElement: React.FC<UserElementProps> = ({ user, onClick }) => {
   return (
-    <div key={user.id} className="user-row">
+    <div key={user.id} onClick={onClick} className="user-row">
       <img
         src={undefined}
         alt={`${user.firstName[0]}${user.lastName[0]}`}

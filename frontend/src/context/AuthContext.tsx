@@ -1,21 +1,6 @@
 // AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-interface UserType {
-  email: string;
-  id: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface AuthContextType {
-  user: UserType | null;
-  setUser: (user: UserType | null) => void;
-  isAuthenticated: boolean;
-  isLoading: boolean; // Add a loading state
-  login: () => void;
-  logout: () => void;
-}
+import { UserType, AuthContextType } from "../types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
