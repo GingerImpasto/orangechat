@@ -68,7 +68,7 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <div className="app-page">
+      <div className="home-page">
         <UserPanel users={users} onLogout={handleLogout} />
       </div>
     </>
