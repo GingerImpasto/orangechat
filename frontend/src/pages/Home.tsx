@@ -14,7 +14,7 @@ const Home: React.FC = () => {
   const { user, isLoading } = useAuth();
   const email = user?.email;
 
-  const handleLogout = async () => {
+  const logoutUser = async () => {
     try {
       const response = await fetch("http://localhost:5000/home/logout", {
         method: "POST",
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
   return (
     <>
       <div className="home-page">
-        <UserPanel users={users} onLogout={handleLogout} />
+        <UserPanel users={users} onLogout={logoutUser} />
       </div>
     </>
   );
