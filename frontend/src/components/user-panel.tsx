@@ -7,12 +7,14 @@ interface UserPanelProps {
   users: UserType[];
   onLogout: () => void;
   onUserClick: (user: UserType) => void;
+  selectedUser: UserType | null;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
   users,
   onLogout,
   onUserClick,
+  selectedUser,
 }) => {
   return (
     <div className="user-panel">
@@ -22,6 +24,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
             key={user.id}
             user={user}
             onClick={() => onUserClick(user)}
+            isSelected={selectedUser?.id === user.id}
           />
         ))}
       </div>

@@ -2,9 +2,10 @@ import "../home.css";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import UserPanel from "../components/user-panel";
-import MessageModal from "../components/message-modal";
 import React, { useState, useEffect } from "react";
 import Loader from "../components/Loader";
+import MessageFeed from "../components/message-feed";
+
 import { UserType } from "../types";
 
 const Home: React.FC = () => {
@@ -16,19 +17,11 @@ const Home: React.FC = () => {
   const { user, isLoading } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const email = user?.email;
 
   const handleUserClick = (user: UserType) => {
     setSelectedUser(user);
-    setIsModalOpen(true);
-  };
-
-  const handleSendMessage = (message: string) => {
-    // Handle sending the message to the selected user
-    console.log(`Sending message to ${selectedUser?.firstName}: ${message}`);
-    // You can implement your message sending logic here
   };
 
   const logoutUser = async () => {
@@ -68,6 +61,7 @@ const Home: React.FC = () => {
 
         const data = await response.json();
         setUsers(data);
+        setSelectedUser(data[0]);
       } catch (err: any) {
         setError(err.message || "An error occurred");
         console.error(error);
@@ -90,13 +84,9 @@ const Home: React.FC = () => {
           users={users}
           onLogout={logoutUser}
           onUserClick={handleUserClick}
+          selectedUser={selectedUser}
         />
-        <MessageModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          user={selectedUser!}
-          onSendMessage={handleSendMessage}
-        />
+        <MessageFeed selectedUser={selectedUser} />
       </div>
     </>
   );

@@ -35,6 +35,7 @@
 
 .user-row:hover {
   background-color: #40444b;
+  cursor: pointer;
 }
 
 .profile-picture {
@@ -88,4 +89,8 @@
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
   transform: translateY(-5px);
   cursor: pointer;
+}
+
+.user-row.selected {
+  background-color: #d0d0d0;
 }
