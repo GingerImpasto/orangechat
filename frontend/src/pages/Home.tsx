@@ -4,10 +4,10 @@ import { useAuth } from "../context/AuthContext";
 import UserPanel from "../components/user-panel";
 import React, { useState, useEffect } from "react";
 import Loader from "../components/Loader";
+
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [error, setError] = useState("");

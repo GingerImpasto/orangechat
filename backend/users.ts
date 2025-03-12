@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 // Function to check if a user exists
 export const checkUserExistence = async (email: string): Promise<boolean> => {
   const { data: existingUser, error: userError } = await supabase
-    .from("User")
+    .from("users")
     .select("*")
     .eq("email", email)
     .maybeSingle();
@@ -24,7 +24,7 @@ export const createUser = async (userData: RegisterForm) => {
   const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
 
   const { data: newUser, error: createError } = await supabase
-    .from("User")
+    .from("users")
     .insert([{ ...userData, password: hashedPassword }]) // Store hashed password
     .select()
     .single();
@@ -38,7 +38,7 @@ export const createUser = async (userData: RegisterForm) => {
 
 export const fetchUser = async (email: string) => {
   const { data: user, error } = await supabase
-    .from("User")
+    .from("users")
     .select("*")
     .eq("email", email)
     .maybeSingle();
@@ -56,7 +56,7 @@ export const getOtherUsers = async (email: string) => {
   try {
     // Fetch all users except the one with the current user's ID
     const { data: users, error: usersError } = await supabase
-      .from("User")
+      .from("users")
       .select("*")
       .neq("email", email) // Exclude the current user
       .order("firstName", { ascending: true }); // Sort by firstName
