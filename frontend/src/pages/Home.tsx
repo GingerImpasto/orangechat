@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import Loader from "../components/Loader";
 import MessageFeed from "../components/message-feed";
 
-import { UserType } from "../types";
+import { UserType, MessageType } from "../types";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +17,8 @@ const Home: React.FC = () => {
   const { user, isLoading } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const [messages, setMessages] = useState<MessageType[]>([]); // Use the Message type
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
   const email = user?.email;
 
@@ -73,7 +75,81 @@ const Home: React.FC = () => {
     fetchUsers();
   }, [email]);
 
-  if (usersLoading || isLoading) {
+  // Fetch messages when a user is selected
+  useEffect(() => {
+    setMessagesLoading(true);
+
+    if (selectedUser && user) {
+      const url = new URL("http://localhost:5000/home/getMessagesBetweenUsers");
+      url.searchParams.append("loggedInUserId", user.id);
+      url.searchParams.append("selectedUserId", selectedUser.id);
+
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch messages");
+          }
+          return response.json();
+        })
+        .then((data) => setMessages(data))
+        .catch((error) => console.error("Error fetching messages:", error))
+        .finally(() => setMessagesLoading(false));
+    }
+  }, [selectedUser, user]);
+
+  // Function to send a new message
+  const handleSendMessage = async (content: string) => {
+    if (!selectedUser) return;
+
+    const newMessage = {
+      senderId: user ? user.id : "",
+      receiverId: selectedUser.id,
+      content: content,
+    };
+
+    // Optimistically update the UI
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        ...newMessage,
+        id: "temp-id",
+        createdAt: new Date().toISOString(),
+        isRead: false,
+      }, // Add a temporary ID and timestamp
+    ]);
+
+    try {
+      // Send the new message to the backend
+      const response = await fetch("http://localhost:5000/home/sendMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMessage),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      // Replace the optimistic message with the actual message from the backend
+      const sentMessage = await response.json();
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.id === "temp-id" ? sentMessage.data : msg
+        )
+      );
+    } catch (error) {
+      console.error("Error sending message:", error);
+
+      // Rollback the optimistic update if the request fails
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== "temp-id")
+      );
+    }
+  };
+
+  if (usersLoading || isLoading || messagesLoading) {
     return <Loader />;
   }
 
@@ -86,7 +162,11 @@ const Home: React.FC = () => {
           onUserClick={handleUserClick}
           selectedUser={selectedUser}
         />
-        <MessageFeed selectedUser={selectedUser} />
+        <MessageFeed
+          messages={messages}
+          selectedUser={selectedUser}
+          onSendMessage={handleSendMessage}
+        />
       </div>
     </>
   );

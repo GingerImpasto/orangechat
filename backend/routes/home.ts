@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { getOtherUsers } from "../users";
+import { fetchMessagesBetweenUsers, storeMessage } from "../messages";
 
 const router = express.Router();
 
@@ -30,6 +31,47 @@ router.get("/getOtherUsers", async (req: any, res: any) => {
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Route to handle message submission
+router.post("/sendMessage", async (req: any, res: any) => {
+  const { content, senderId, receiverId } = req.body;
+
+  if (!content || !senderId || !receiverId) {
+    return res.status(400).json({
+      error: "All fields (content, senderId, receiverId) are required",
+    });
+  }
+
+  try {
+    // Store the message using the storeMessage function
+    const data = await storeMessage(content, senderId, receiverId);
+    res.status(201).json({ success: true, data: data });
+  } catch (error) {
+    console.error("Error storing message:", error);
+    res.status(500).json({ error: "Failed to store message" });
+  }
+});
+
+// Endpoint to fetch messages between two users
+router.get("/getMessagesbetweenUsers", async (req: any, res: any) => {
+  const { loggedInUserId, selectedUserId } = req.query;
+
+  if (!loggedInUserId || !selectedUserId) {
+    return res
+      .status(400)
+      .json({ error: "Both loggedInUserId and selectedUserId are required" });
+  }
+
+  try {
+    const messages = await fetchMessagesBetweenUsers(
+      loggedInUserId,
+      selectedUserId
+    );
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
 

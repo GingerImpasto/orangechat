@@ -1,31 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { UserType } from "../types"; // Assuming you have a types file
+import React, { useState } from "react";
+import { UserType, MessageType } from "../types"; // Assuming you have a types file
+import { useAuth } from "../context/AuthContext";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
+  messages: MessageType[];
   selectedUser: UserType | null;
+  onSendMessage: (text: string) => void; // Callback to handle sending messages
 }
 
-const MessageFeed: React.FC<MessageFeedProps> = ({ selectedUser }) => {
-  const [messages, setMessages] = useState<string[]>([]);
-  const [newMessage, setNewMessage] = useState("");
-
-  useEffect(() => {
-    if (selectedUser) {
-      // Fetch messages for the selected user (mock data)
-      setMessages([
-        `Hello, ${selectedUser.firstName}! (demo)`,
-        `How are you doing, ${selectedUser.firstName}? (demo)`,
-      ]);
-    } else {
-      setMessages([]);
-    }
-  }, [selectedUser]);
+const MessageFeed: React.FC<MessageFeedProps> = ({
+  messages,
+  selectedUser,
+  onSendMessage,
+}) => {
+  const [newMessage, setNewMessage] = useState<string>(""); // State for the new message input
+  const { user } = useAuth();
 
   const handleSendMessage = () => {
-    if (newMessage.trim() && selectedUser) {
-      setMessages([...messages, `You: ${newMessage}`]);
-      setNewMessage("");
+    if (newMessage.trim()) {
+      onSendMessage(newMessage); // Trigger the callback to send the message
+      setNewMessage(""); // Clear the input field
     }
   };
 
@@ -40,10 +35,11 @@ const MessageFeed: React.FC<MessageFeedProps> = ({ selectedUser }) => {
           <div
             key={index}
             className={`message ${
-              message.startsWith("You:") ? "sent" : "received"
+              message.senderId === user?.id ? "sent" : "received"
             }`}
           >
-            {message}
+            {message.content}
+            {message.createdAt}
           </div>
         ))}
       </div>

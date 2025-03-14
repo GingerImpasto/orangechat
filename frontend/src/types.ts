@@ -13,3 +13,12 @@ export interface AuthContextType {
   login: () => void;
   logout: () => void;
 }
+
+export type MessageType = {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  isRead: boolean;
+  createdAt?: string; // Optional field for timestamp
+};
