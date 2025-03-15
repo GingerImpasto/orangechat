@@ -4,3 +4,8 @@ export interface RegisterForm {
   firstName: string;
   lastName: string;
 }
+
+export interface UploadImageResponse {
+  imageUrl: string | null;
+  error?: string;
+}

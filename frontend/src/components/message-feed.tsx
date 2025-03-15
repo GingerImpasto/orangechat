@@ -6,7 +6,7 @@ import "../MessageFeed.css";
 interface MessageFeedProps {
   messages: MessageType[];
   selectedUser: UserType | null;
-  onSendMessage: (text: string) => void; // Callback to handle sending messages
+  onSendMessage: (formData: FormData) => Promise<void>; // Callback to handle sending messages
 }
 
 const MessageFeed: React.FC<MessageFeedProps> = ({
@@ -16,12 +16,27 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const [newMessage, setNewMessage] = useState<string>(""); // State for the new message input
   const { user } = useAuth();
+  const [image, setImage] = useState<File | null>(null);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage); // Trigger the callback to send the message
-      setNewMessage(""); // Clear the input field
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImage(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("content", newMessage);
+    formData.append("senderId", user ? user.id : "");
+    formData.append("receiverId", selectedUser ? selectedUser.id : "");
+
+    if (image) {
+      formData.append("image", image);
     }
+
+    await onSendMessage(formData);
+    setNewMessage("");
+    setImage(null);
   };
 
   if (!selectedUser) {
@@ -38,12 +53,20 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
               message.senderId === user?.id ? "sent" : "received"
             }`}
           >
+            {message.imageUrl && (
+              <img
+                src={message.imageUrl}
+                alt="Sent"
+                style={{ maxWidth: "200px", borderRadius: "8px" }}
+              />
+            )}
             {message.content}
             {message.createdAt}
           </div>
         ))}
       </div>
-      <div className="message-input-container">
+
+      <form className="message-input-container" onSubmit={handleSubmit}>
         <input
           type="text"
           className="message-input"
@@ -51,10 +74,11 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type a message..."
         />
-        <button className="send-button" onClick={handleSendMessage}>
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <button type="submit" className="send-button">
           Send
         </button>
-      </div>
+      </form>
     </div>
   );
 };

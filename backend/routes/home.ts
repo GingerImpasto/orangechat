@@ -1,8 +1,16 @@
 import express, { Request, Response } from "express";
 import { getOtherUsers } from "../users";
-import { fetchMessagesBetweenUsers, storeMessage } from "../messages";
+import {
+  fetchMessagesBetweenUsers,
+  storeMessage,
+  uploadImageToSupabase,
+} from "../messages";
+import multer from "multer";
 
 const router = express.Router();
+
+// Configure multer for file storage
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route to handle user logout
 router.post("/logout", (req: any, res: any) => {
@@ -35,24 +43,44 @@ router.get("/getOtherUsers", async (req: any, res: any) => {
 });
 
 // Route to handle message submission
-router.post("/sendMessage", async (req: any, res: any) => {
-  const { content, senderId, receiverId } = req.body;
+router.post(
+  "/sendMessage",
+  upload.single("image"),
+  async (req: any, res: any) => {
+    const { content, senderId, receiverId } = req.body;
+    const imageFile = req.file;
 
-  if (!content || !senderId || !receiverId) {
-    return res.status(400).json({
-      error: "All fields (content, senderId, receiverId) are required",
-    });
-  }
+    let imageUrl: string | null = null;
 
-  try {
-    // Store the message using the storeMessage function
-    const data = await storeMessage(content, senderId, receiverId);
-    res.status(201).json({ success: true, data: data });
-  } catch (error) {
-    console.error("Error storing message:", error);
-    res.status(500).json({ error: "Failed to store message" });
+    if (imageFile) {
+      // Use the utility function to upload the image to Supabase
+      const { imageUrl: uploadedImageUrl, error } = await uploadImageToSupabase(
+        imageFile
+      );
+
+      if (error) {
+        return res.status(500).json({ error });
+      }
+
+      imageUrl = uploadedImageUrl;
+    }
+
+    if (!content || !senderId || !receiverId) {
+      return res.status(400).json({
+        error: "All fields (content, senderId, receiverId) are required",
+      });
+    }
+
+    try {
+      // Store the message using the storeMessage function
+      const data = await storeMessage(content, senderId, receiverId, imageUrl);
+      res.status(201).json({ success: true, data: data });
+    } catch (error) {
+      console.error("Error storing message:", error);
+      res.status(500).json({ error: "Failed to store message" });
+    }
   }
-});
+);
 
 // Endpoint to fetch messages between two users
 router.get("/getMessagesbetweenUsers", async (req: any, res: any) => {

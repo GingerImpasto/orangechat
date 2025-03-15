@@ -98,13 +98,18 @@ const Home: React.FC = () => {
   }, [selectedUser, user]);
 
   // Function to send a new message
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (formData: FormData) => {
     if (!selectedUser) return;
+
+    const content = formData.get("content") as string;
+
+    let imageUrl: string | null = null;
 
     const newMessage = {
       senderId: user ? user.id : "",
       receiverId: selectedUser.id,
       content: content,
+      imageUrl: imageUrl,
     };
 
     // Optimistically update the UI
@@ -115,6 +120,7 @@ const Home: React.FC = () => {
         id: "temp-id",
         createdAt: new Date().toISOString(),
         isRead: false,
+        imageUrl: null,
       }, // Add a temporary ID and timestamp
     ]);
 
@@ -122,10 +128,7 @@ const Home: React.FC = () => {
       // Send the new message to the backend
       const response = await fetch("http://localhost:5000/home/sendMessage", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMessage),
+        body: formData,
       });
 
       if (!response.ok) {

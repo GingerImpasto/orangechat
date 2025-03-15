@@ -21,4 +21,5 @@ export type MessageType = {
   content: string;
   isRead: boolean;
   createdAt?: string; // Optional field for timestamp
+  imageUrl?: string | null;
 };

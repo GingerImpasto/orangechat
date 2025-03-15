@@ -1,14 +1,16 @@
 import supabase from "./supabase-client";
+import { UploadImageResponse } from "./types";
 
 // Function to store a message in Supabase
 export const storeMessage = async (
   content: string,
   senderId: string,
-  receiverId: string
+  receiverId: string,
+  imageUrl: string | null
 ) => {
   const { data, error } = await supabase
     .from("messages")
-    .insert([{ content, senderId: senderId, receiverId: receiverId }])
+    .insert([{ content, senderId: senderId, receiverId: receiverId, imageUrl }])
     .select()
     .single();
 
@@ -42,5 +44,36 @@ export const fetchMessagesBetweenUsers = async (
   } catch (error) {
     console.error("Error fetching messages:", error);
     throw error;
+  }
+};
+
+export const uploadImageToSupabase = async (
+  file: Express.Multer.File
+): Promise<UploadImageResponse> => {
+  try {
+    // Generate a unique filename
+    const fileName = `${Date.now()}-${file.originalname}`;
+
+    // Upload the image to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from("whisperchat-images") // Your bucket name
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+      });
+
+    if (error) {
+      console.error("Error uploading image:", error);
+      return { imageUrl: null, error: "Failed to upload image" };
+    }
+
+    // Get the public URL of the uploaded image
+    const { data: publicUrlData } = supabase.storage
+      .from("whisperchat-images")
+      .getPublicUrl(fileName);
+
+    return { imageUrl: publicUrlData.publicUrl };
+  } catch (error) {
+    console.error("Error in uploadImageToSupabase:", error);
+    return { imageUrl: null, error: "Internal server error" };
   }
 };
