@@ -47,7 +47,6 @@ export const fetchUser = async (email: string) => {
     throw new Error(error.message);
   }
 
-  console.log("User is ", user);
   return user;
 };
 
