@@ -17,30 +17,73 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
 
+  // Helper function to group messages by date
+  const groupMessagesByDate = (messages: MessageType[]) => {
+    const groupedMessages: { [key: string]: MessageType[] } = {};
+
+    messages.forEach((message) => {
+      if (!message.createdAt) return;
+
+      const date = new Date(message.createdAt).toDateString(); // Get the date string (e.g., "Mon Oct 02 2023")
+      if (!groupedMessages[date]) {
+        groupedMessages[date] = [];
+      }
+      groupedMessages[date].push(message);
+    });
+
+    return groupedMessages;
+  };
+
+  const groupedMessages = groupMessagesByDate(messages);
+
   if (!selectedUser) {
     return <div className="messages-container">No user selected.</div>;
   }
 
   return (
-    <div className="message-feed">
-      <div className="messages-container">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`message ${
-              message.senderId === user?.id ? "sent" : "received"
-            }`}
-          >
-            {message.imageUrl && (
-              <img
-                src={message.imageUrl}
-                alt="Sent"
-                style={{ maxWidth: "200px", borderRadius: "8px" }}
-              />
-            )}
-            {message.content}
-            {message.createdAt}
-          </div>
+    <div className="message-feed-top-container">
+      <div className="message-feed">
+        {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
+          <React.Fragment key={date}>
+            {/* Date separator */}
+            <div className="date-separator">
+              <span>{date}</span>
+            </div>
+
+            {/* Messages for this date */}
+            {messagesForDate.map((message) => (
+              <div
+                key={message.id}
+                className={`message-container ${
+                  message.senderId === user?.id
+                    ? "message-right"
+                    : "message-left"
+                }`}
+              >
+                <div
+                  className={`message-bubble ${
+                    message.senderId === user?.id
+                      ? "message-sent"
+                      : "message-received"
+                  }`}
+                >
+                  {message.imageUrl && (
+                    <img
+                      src={message.imageUrl}
+                      alt="message content"
+                      className="message-image"
+                    />
+                  )}
+                  <p className="message-content">{message.content}</p>
+                  {message.createdAt && (
+                    <span className="message-timestamp">
+                      {new Date(message.createdAt).toLocaleTimeString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </React.Fragment>
         ))}
       </div>
 

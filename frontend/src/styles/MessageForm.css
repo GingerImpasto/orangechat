@@ -84,6 +84,7 @@
 }
 
 .emoji-picker-container {
+  display: flex;
   position: absolute;
   bottom: 60px; /* Position above the smiley icon */
   left: 250px;

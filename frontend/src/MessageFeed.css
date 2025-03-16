@@ -1,61 +1,105 @@
-/* Message feed container */
+/* Container for the message feed and message form */
+.message-feed-top-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+}
+
+/* Container for the entire message feed */
 .message-feed {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%; /* Ensure it takes full height */
-  background-color: green; /* Light background for the feed */
-}
-
-/* Messages container */
-.messages-container {
   flex: 1;
-  overflow-y: auto;
+  gap: 16px; /* Space between messages */
   padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+/* Container for each message */
+.message-container {
   display: flex;
-  flex-direction: column;
-  gap: 12px; /* Space between messages */
 }
 
-/* Individual message styles */
-.message {
-  padding: 12px 16px;
-  border-radius: 12px;
+/* Align messages to the right if sent by the current user */
+.message-container.message-right {
+  justify-content: flex-end;
+}
+
+/* Align messages to the left if received from another user */
+.message-container.message-left {
+  justify-content: flex-start;
+}
+
+/* Styling for the message bubble */
+.message-bubble {
   max-width: 70%;
-  word-wrap: break-word;
-  position: relative;
+  padding: 12px;
+  border-radius: 12px;
 }
 
-.message.sent {
-  background-color: #007bff; /* Blue for sent messages */
+/* Styling for sent messages (current user) */
+.message-bubble.message-sent {
+  background-color: #007bff;
   color: white;
-  align-self: flex-end;
 }
 
-.message.received {
-  background-color: #ffffff; /* White for received messages */
-  color: black;
-  align-self: flex-start;
-  border: 1px solid #e0e0e0; /* Light border for received messages */
+/* Styling for received messages (other users) */
+.message-bubble.message-received {
+  background-color: white;
+  color: #333;
+  border: 1px solid #e0e0e0;
 }
 
-/* Timestamp for messages (optional) */
-.message .timestamp {
+/* Styling for images in messages */
+.message-image {
+  border-radius: 8px;
+  margin-bottom: 8px;
+  max-width: 200px; /* Adjusted to make images smaller */
+  height: auto;
+}
+
+/* Styling for message content */
+.message-content {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Styling for the timestamp */
+.message-timestamp {
   font-size: 12px;
-  color: #666;
+  opacity: 0.75;
   margin-top: 4px;
+  display: block;
 }
 
-.message-input:focus {
-  border-color: #007bff; /* Highlight input on focus */
-}
-
-/* No user selected message */
-.no-user-selected {
+/* Date separator */
+.date-separator {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  margin: 16px 0;
+  position: relative;
+}
+
+.date-separator span {
+  background-color: #f9f9f9;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
   color: #666;
-  font-size: 18px;
+  z-index: 1;
+}
+
+.date-separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+  z-index: 0;
 }
