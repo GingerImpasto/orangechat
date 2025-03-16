@@ -160,6 +160,7 @@ const Home: React.FC = () => {
     <>
       <div className="home-page">
         <UserPanel
+          loggedUser={user}
           users={users}
           onLogout={logoutUser}
           onUserClick={handleUserClick}

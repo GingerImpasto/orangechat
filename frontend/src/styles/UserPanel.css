@@ -1,0 +1,125 @@
+.user-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 250px;
+  background-color: #2f3136;
+  color: white;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.user-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.user-row:hover {
+  background-color: #40444b;
+  cursor: pointer;
+}
+
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.logout-button {
+  padding: 1em;
+  margin: 0 auto;
+  border: none;
+  width: 10em;
+  border-radius: 15px;
+  font-weight: bold;
+  background-color: yellow;
+  font-family: "Courier New", Courier, monospace;
+  color: blue;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: gold;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  cursor: pointer;
+}
+
+.user-row.selected {
+  background-color: #d0d0d0;
+}
+
+.user-footer {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #34495e;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative; /* Ensure footer is a reference for the popup */
+}
+
+.user-footer:hover {
+  background-color: #3b4f63;
+}
+
+.username {
+  font-size: 16px;
+}
+
+.popup {
+  position: absolute;
+  bottom: 80px;
+  left: 15px;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  padding: 8px 0;
+  width: 160px;
+}
+
+.popup-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.popup-item:hover {
+  background-color: #f5f5f5;
+}
+
+.popup-icon {
+  margin-right: 10px;
+  color: #555;
+  width: 16px;
+}
+
+.popup-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 4px 0;
+}
