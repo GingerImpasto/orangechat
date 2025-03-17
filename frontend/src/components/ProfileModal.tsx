@@ -98,10 +98,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
     onClose(); // Close the modal without saving
   };
 
+  {
+    /* 
   const handleDeleteAccount = () => {
     console.log("Account deletion requested");
     // Add logic to delete the account
   };
+*/
+  }
 
   return (
     <div className="profile-modal-overlay">
