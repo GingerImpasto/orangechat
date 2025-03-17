@@ -42,7 +42,7 @@
 
 /* Styling for sent messages (current user) */
 .message-bubble.message-sent {
-  background-color: #007bff;
+  background-color: olivedrab;
   color: white;
 }
 

@@ -3,8 +3,9 @@
   flex-direction: column;
   height: 100vh;
   width: 250px;
-  background-color: #2f3136;
-  color: white;
+  background-color: #c35214;
+  border: #444;
+  color: #fff;
   padding: 16px;
   box-sizing: border-box;
 }
@@ -20,11 +21,12 @@
   padding: 8px;
   margin-bottom: 8px;
   border-radius: 4px;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease;
 }
 
 .user-row:hover {
-  background-color: #40444b;
+  background-color: #ffd699;
+  color: #fff;
   cursor: pointer;
 }
 
@@ -63,21 +65,24 @@
 }
 
 .user-row.selected {
-  background-color: #d0d0d0;
+  background-color: #ffa500;
+  color: #fff;
 }
 
 .user-footer {
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #34495e;
+  background-color: #4c2b00;
+  color: #fff;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  position: relative; /* Ensure footer is a reference for the popup */
+  transition: background-color 0.3s ease;
+  border-top: 1px solid #444;
 }
 
 .user-footer:hover {
-  background-color: #3b4f63;
+  background-color: brown;
+  /*color: #444; */
 }
 
 .username {

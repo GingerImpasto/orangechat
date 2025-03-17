@@ -16,7 +16,7 @@
 }
 
 .send-button {
-  background-color: #075e54;
+  background-color: orangered;
   color: #fff;
   border: none;
   padding: 10px;
@@ -30,13 +30,13 @@
 }
 
 .send-button:hover {
-  background-color: #128c7e;
+  background-color: #ffa500;
 }
 
 .image-picker {
   cursor: pointer;
   padding: 8px;
-  color: #075e54;
+  color: orangered;
 }
 
 .image-feedback {
@@ -71,7 +71,7 @@
 .emoji-picker-button {
   background: none;
   border: none;
-  color: #075e54;
+  color: orangered;
   cursor: pointer;
   padding: 8px;
   display: flex;
@@ -80,7 +80,7 @@
 }
 
 .emoji-picker-button:hover {
-  color: #128c7e;
+  color: #ffa500;
 }
 
 .emoji-picker-container {
