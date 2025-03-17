@@ -3,7 +3,6 @@ import { UserType, MessageType } from "../types"; // Assuming you have a types f
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
 import "../MessageFeed.css";
-import backgroundPattern from "../assets/fruit-pattern-light.jpg";
 
 interface MessageFeedProps {
   messages: MessageType[];
@@ -43,15 +42,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
-      <div
-        className="message-feed"
-        style={{
-          backgroundImage: `url(${backgroundPattern})`,
-          backgroundRepeat: "repeat",
-          backgroundColor: "#F0F0F0", // Fallback color
-          padding: "16px", // Add some padding for content
-        }}
-      >
+      <div className="message-feed">
         {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
           <React.Fragment key={date}>
             {/* Date separator */}

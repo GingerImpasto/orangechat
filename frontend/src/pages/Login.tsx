@@ -152,7 +152,7 @@ function Login() {
         >
           {action === "login" ? "Sign up" : "Login"}
         </button>
-        <h2 className="login-whisperchat-welcome">Welcome to Whisperchat</h2>
+        <h2 className="login-whisperchat-welcome">Welcome to Orange Chat</h2>
         <h3 className="login-whisperchat-subtext">
           {action === "login"
             ? "Login to chat with friends!"
