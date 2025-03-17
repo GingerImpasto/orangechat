@@ -4,9 +4,13 @@ import loginRoutes from "./routes/login";
 import homeRoutes from "./routes/home";
 import cookieParser from "cookie-parser";
 import { cookieSession } from "./auth";
+import path from "path";
 
 const app = express();
 const PORT = 5000;
+
+// Serve the frontend's dist files
+app.use(express.static(path.join(__dirname, "../frontend-dist")));
 
 // Middleware
 // Configure CORS
@@ -25,6 +29,11 @@ app.use(cookieSession);
 
 app.use("/login", loginRoutes);
 app.use("/home", homeRoutes);
+
+// Fallback to index.html for client-side routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend-dist", "index.html"));
+});
 
 // Start the server
 app.listen(PORT, () => {

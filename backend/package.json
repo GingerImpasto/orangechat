@@ -18,11 +18,14 @@
     "@types/express-session": "^1.18.1",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.13.10",
+    "esbuild": "^0.25.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "dev": "ts-node-dev server.ts"
+    "start": "node dist/bundle.js",
+    "dev": "ts-node-dev ./src/server.ts",
+    "build": "esbuild src/server.ts --bundle --platform=node --outfile=dist/bundle.js --minify"
   }
 }
