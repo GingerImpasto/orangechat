@@ -1,6 +1,7 @@
 import React from "react";
-import "../home.css"; // Import the CSS file
+import "../styles/UserPanel.css"; // Import the CSS file
 import { UserType } from "../types";
+import { stringToColor, getInitials } from "../utils/imageDisplay";
 
 interface UserElementProps {
   user: UserType;
@@ -13,17 +14,38 @@ const UserElement: React.FC<UserElementProps> = ({
   onClick,
   isSelected,
 }) => {
+  // Random background color for initials
+  const backgroundColor = stringToColor(user.firstName);
+
   return (
     <div
       key={user.id}
       onClick={onClick}
       className={`user-row ${isSelected ? "selected" : ""}`}
     >
-      <img
-        src={undefined}
-        alt={`${user.firstName[0]}${user.lastName[0]}`}
-        className="profile-picture"
-      />
+      {user.profileImageUrl ? (
+        <img
+          src={user.profileImageUrl}
+          alt={`${user.firstName} ${user.lastName}`}
+          className="profile-picture"
+        />
+      ) : (
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            backgroundColor,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            marginRight: "12px",
+            color: "#fff",
+          }}
+        >
+          {getInitials(user.firstName, user.lastName)}
+        </div>
+      )}
       <span className="user-name">{`${user.firstName} ${user.lastName}`}</span>
     </div>
   );

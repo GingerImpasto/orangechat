@@ -1,16 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "../styles/ProfileModal.css"; // Styles for the ProfileModal
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCamera, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { UserType } from "../types";
+import { useAuth } from "../context/AuthContext";
+import { stringToColor, getInitials } from "../utils/imageDisplay";
 
 interface ProfileModalProps {
+  loggedUser: UserType | null;
   onClose: () => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
-  const [firstName, setFirstName] = useState("John");
-  const [lastName, setLastName] = useState("Doe");
-  const [profileImage, setProfileImage] = useState(
-    "https://via.placeholder.com/150"
+const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
+  const { setUser } = useAuth();
+
+  const [firstName, setFirstName] = useState(
+    loggedUser ? loggedUser.firstName : ""
   );
+  const [lastName, setLastName] = useState(
+    loggedUser ? loggedUser.lastName : ""
+  );
+  const [profileImage, setProfileImage] = useState(
+    loggedUser && loggedUser.profileImageUrl ? loggedUser.profileImageUrl : null
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Random background color for initials
+  const backgroundColor = stringToColor(loggedUser ? loggedUser.firstName : "");
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,12 +39,58 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     }
   };
 
-  const handleSave = () => {
-    console.log("Saving changes...");
-    console.log("First Name:", firstName);
-    console.log("Last Name:", lastName);
-    console.log("Profile Image:", profileImage);
-    onClose(); // Close the modal after saving
+  const handleRemoveImage = () => {
+    setProfileImage(null); // Reset to default placeholder
+  };
+
+  const handleSave = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("userId", loggedUser ? loggedUser.id : ""); // Replace with the actual user ID
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append(
+        "currentImageUrl",
+        loggedUser ? loggedUser.profileImageUrl : ""
+      ); // Pass the current image URL
+
+      // Append the image file only if a new one is selected
+      if (fileInputRef.current?.files?.[0]) {
+        formData.append("profileImage", fileInputRef.current.files[0]);
+      } else if (!profileImage) {
+        // If the image is reset to the default placeholder, send null
+        formData.append("profileImage", ""); // Send an empty value to indicate removal
+      }
+
+      // Send a POST request to the Express server
+      const response = await fetch("http://localhost:5000/home/profileUpdate", {
+        method: "POST",
+        body: formData, // No need to set Content-Type header for FormData
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save profile data");
+      }
+
+      const result = await response.json();
+      console.log("Profile updated successfully:", result);
+      if (loggedUser) {
+        loggedUser.profileImageUrl = result.profileImageUrl;
+      }
+
+      setUser(loggedUser);
+      // Close the modal after saving
+      onClose();
+    } catch (error) {
+      console.error("Error saving profile data:", error);
+
+      // Handle the error safely
+      if (error instanceof Error) {
+        alert(`Failed to save profile data: ${error.message}`);
+      } else {
+        alert("Failed to save profile data. Please try again.");
+      }
+    }
   };
 
   const handleCancel = () => {
@@ -49,13 +111,50 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         </div>
         <div className="profile-modal-content">
           <div className="profile-image-section">
-            <img src={profileImage} alt="Profile" className="profile-image" />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="image-upload"
-            />
+            <div className="profile-image-container">
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={`${loggedUser?.firstName} ${loggedUser?.lastName}`}
+                  className="profile-image"
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    borderRadius: "50%",
+                    backgroundColor,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginRight: "12px",
+                    color: "#fff",
+                  }}
+                >
+                  {getInitials(
+                    loggedUser ? loggedUser.firstName : "",
+                    loggedUser ? loggedUser.lastName : ""
+                  )}
+                </div>
+              )}
+              <div
+                className="image-picker-icon"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FontAwesomeIcon icon={faCamera} />
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                ref={fileInputRef}
+                style={{ display: "none" }}
+              />
+            </div>
+            <button className="remove-image-button" onClick={handleRemoveImage}>
+              <FontAwesomeIcon icon={faTrash} /> Remove Image
+            </button>
           </div>
           <div className="form-group">
             <label>First Name</label>
@@ -73,6 +172,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
               onChange={(e) => setLastName(e.target.value)}
             />
           </div>
+          {/* Deletion logic, implement some time */}
+          {/*
           <div className="form-group">
             <button
               className="delete-account-button"
@@ -81,6 +182,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
               Delete Account
             </button>
           </div>
+          */}
           <div className="modal-actions">
             <button className="cancel-button" onClick={handleCancel}>
               Cancel

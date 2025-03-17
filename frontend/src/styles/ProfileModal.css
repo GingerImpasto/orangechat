@@ -54,6 +54,11 @@
   gap: 10px;
 }
 
+.profile-image-container {
+  position: relative;
+  display: inline-block;
+}
+
 .profile-image {
   width: 100px;
   height: 100px;
@@ -61,8 +66,43 @@
   object-fit: cover;
 }
 
-.image-upload {
+.image-picker-icon {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #1890ff;
+  color: white;
+  border-radius: 50%;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: background-color 0.2s ease;
+}
+
+.image-picker-icon:hover {
+  background-color: #40a9ff;
+}
+
+.remove-image-button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.remove-image-button:hover {
+  background-color: #ff7875;
 }
 
 .form-group {

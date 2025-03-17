@@ -5,6 +5,8 @@ import ProfileModal from "./ProfileModal";
 import { UserType } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../context/AuthContext";
+import { stringToColor, getInitials } from "../utils/imageDisplay";
 
 interface UserPanelProps {
   loggedUser: UserType | null;
@@ -25,6 +27,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  // Random background color for initials
+  const backgroundColor = stringToColor(user ? user.firstName : "");
 
   const handleProfileClick = () => {
     setProfileModalOpen(true);
@@ -71,15 +77,32 @@ const UserPanel: React.FC<UserPanelProps> = ({
         ref={footerRef}
         onClick={() => setPopupOpen(!isPopupOpen)}
       >
-        <img
-          src="https://via.placeholder.com/40" // Replace with the actual profile picture URL
-          alt="Profile"
-          className="profile-picture"
-        />
+        {user?.profileImageUrl ? (
+          <img
+            src={user.profileImageUrl}
+            alt={`${user.firstName} ${user.lastName}`}
+            className="profile-picture"
+          />
+        ) : (
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              backgroundColor,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginRight: "12px",
+              color: "#fff",
+            }}
+          >
+            {getInitials(user ? user.firstName : "", user ? user.lastName : "")}
+          </div>
+        )}
         <span className="username">
-          {loggedUser?.firstName} {loggedUser?.lastName}
+          {user?.firstName} {user?.lastName}
         </span>{" "}
-        {/* Replace with the actual username */}
       </div>
 
       {isPopupOpen && (
@@ -97,7 +120,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
       )}
 
       {/* Profile Modal */}
-      {isProfileModalOpen && <ProfileModal onClose={handleCloseProfileModal} />}
+      {isProfileModalOpen && (
+        <ProfileModal
+          onClose={handleCloseProfileModal}
+          loggedUser={loggedUser}
+        />
+      )}
     </div>
   );
 };

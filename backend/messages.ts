@@ -77,3 +77,17 @@ export const uploadImageToSupabase = async (
     return { imageUrl: null, error: "Internal server error" };
   }
 };
+
+export const deleteImageFromSupabase = async (
+  fileName: string
+): Promise<void> => {
+  const bucketName = "whisperchat-images";
+
+  const { error } = await supabase.storage.from(bucketName).remove([fileName]);
+
+  if (error) {
+    throw new Error(`Failed to delete image: ${error.message}`);
+  }
+
+  console.log("Image deleted successfully:", fileName);
+};

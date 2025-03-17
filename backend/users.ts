@@ -70,3 +70,22 @@ export const getOtherUsers = async (email: string) => {
     throw error;
   }
 };
+
+/**
+ * Updates the profile data in the Supabase table.
+ */
+export const updateProfile = async (
+  userId: string,
+  firstName: string,
+  lastName: string,
+  profileImageUrl: string | null
+): Promise<void> => {
+  const { data, error } = await supabase
+    .from("users")
+    .update({ firstName, lastName, profileImageUrl })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`Failed to update profile: ${error.message}`);
+  }
+};

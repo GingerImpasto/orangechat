@@ -1,9 +1,10 @@
 import express, { Request, Response } from "express";
-import { getOtherUsers } from "../users";
+import { getOtherUsers, updateProfile } from "../users";
 import {
   fetchMessagesBetweenUsers,
   storeMessage,
   uploadImageToSupabase,
+  deleteImageFromSupabase,
 } from "../messages";
 import multer from "multer";
 
@@ -102,5 +103,58 @@ router.get("/getMessagesbetweenUsers", async (req: any, res: any) => {
     res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
+
+// POST endpoint to handle profile updates
+router.post(
+  "/profileUpdate",
+  upload.single("profileImage"),
+  async (req: any, res: any) => {
+    const { userId, firstName, lastName, currentImageUrl } = req.body;
+    const file = req.file;
+    let profileImageUrl = null;
+
+    try {
+      // Step 1: Delete the old image
+      // if it exists and no new image is provided
+      if (!file && currentImageUrl) {
+        const fileName = currentImageUrl.split("/").pop(); // Extract the file name from the URL
+        console.log("deletion case", fileName, currentImageUrl);
+        if (fileName) {
+          await deleteImageFromSupabase(fileName);
+        }
+      }
+
+      // Step 2: Upload the image to Supabase Storage (if a new image is provided)
+      if (file) {
+        // Use the utility function to upload the image to Supabase
+        const { imageUrl: uploadedImageUrl, error } =
+          await uploadImageToSupabase(file);
+
+        if (error) {
+          return res.status(500).json({ error });
+        }
+
+        profileImageUrl = uploadedImageUrl;
+      }
+
+      // Step 3: Update the profile data in the database
+      await updateProfile(userId, firstName, lastName, profileImageUrl);
+
+      // Send a success response
+      res
+        .status(200)
+        .json({ message: "Profile updated successfully", profileImageUrl });
+    } catch (error) {
+      console.error("Error:", error);
+
+      // Handle the error safely
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "An unknown error occurred" });
+      }
+    }
+  }
+);
 
 export default router;

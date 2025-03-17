@@ -13,9 +13,10 @@ export const cookieSession = session({
   },
 });
 
-export const checkAuth = (req: any, res: any) => {
+export const checkAuth = async (req: any, res: any) => {
   if (req.session.user) {
-    res.status(200).json({ isAuthenticated: true, user: req.session.user });
+    const loggedUser = await fetchUser(req.session.user.email);
+    res.status(200).json({ isAuthenticated: true, user: loggedUser });
   } else {
     res.status(401).json({ isAuthenticated: false });
   }
@@ -47,8 +48,6 @@ export const loginUser = async (req: any, res: any) => {
     req.session.user = {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
     };
 
     // Log the Set-Cookie header
@@ -64,6 +63,7 @@ export const loginUser = async (req: any, res: any) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
       },
     });
   } catch (error) {
