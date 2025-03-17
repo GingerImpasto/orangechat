@@ -50,7 +50,7 @@
 
 /* Styling for received messages (other users) */
 .message-bubble.message-received {
-  background-color: white;
+  background-color: whitesmoke;
   color: #333;
   border: 1px solid #e0e0e0;
 }

@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import App from "./App.tsx";
 import "./index.css";
-//import App from "./App.tsx";
 import Login from "./pages/Login.tsx";
 import ProtectedRoute from "./routes/ProtectedRoute.tsx";
 
