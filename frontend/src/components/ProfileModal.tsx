@@ -24,6 +24,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
     loggedUser && loggedUser.profileImageUrl ? loggedUser.profileImageUrl : null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Random background color for initials
   const backgroundColor = stringToColor(loggedUser ? loggedUser.firstName : "");
@@ -63,7 +64,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
       }
 
       // Send a POST request to the Express server
-      const response = await fetch("http://localhost:5000/home/profileUpdate", {
+      const response = await fetch(`${API_BASE_URL}/home/profileUpdate`, {
         method: "POST",
         body: formData, // No need to set Content-Type header for FormData
       });

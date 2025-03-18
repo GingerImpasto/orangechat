@@ -10,12 +10,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Initialize as true
   const [user, setUser] = useState<UserType | null>(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Check if the user is authenticated on initial load
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/login/check-auth", {
+        const response = await fetch(`${API_BASE_URL}/login/check-auth`, {
           credentials: "include", // Include cookies
         });
 

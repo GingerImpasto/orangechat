@@ -19,6 +19,7 @@ const Home: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]); // Use the Message type
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const email = user?.email;
 
@@ -28,7 +29,7 @@ const Home: React.FC = () => {
 
   const logoutUser = async () => {
     try {
-      const response = await fetch("http://localhost:5000/home/logout", {
+      const response = await fetch(`${API_BASE_URL}/home/logout`, {
         method: "POST",
         credentials: "include", // Include cookies in the request
       });
@@ -55,7 +56,7 @@ const Home: React.FC = () => {
       try {
         // Call the /getOtherUsers endpoint
         const response = await fetch(
-          `http://localhost:5000/home/getOtherUsers?email=${email}`
+          `${API_BASE_URL}/home/getOtherUsers?email=${email}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch users");
@@ -80,7 +81,7 @@ const Home: React.FC = () => {
     setMessagesLoading(true);
 
     if (selectedUser && user) {
-      const url = new URL("http://localhost:5000/home/getMessagesBetweenUsers");
+      const url = new URL(`${API_BASE_URL}/home/getMessagesBetweenUsers`);
       url.searchParams.append("loggedInUserId", user.id);
       url.searchParams.append("selectedUserId", selectedUser.id);
 
@@ -126,7 +127,7 @@ const Home: React.FC = () => {
 
     try {
       // Send the new message to the backend
-      const response = await fetch("http://localhost:5000/home/sendMessage", {
+      const response = await fetch(`${API_BASE_URL}/home/sendMessage`, {
         method: "POST",
         body: formData,
       });

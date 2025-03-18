@@ -27,6 +27,7 @@ function Login() {
   });
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, login, setUser } = useAuth();
@@ -92,7 +93,7 @@ function Login() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/login/submit-${
+          `${API_BASE_URL}/login/submit-${
             action === "login" ? "login" : "signup"
           }-form`,
           {
