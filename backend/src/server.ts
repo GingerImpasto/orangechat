@@ -7,7 +7,7 @@ import { cookieSession } from "./auth";
 import path from "path";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Serve the frontend's dist files
 app.use(express.static(path.join(__dirname, "../frontend-dist")));
