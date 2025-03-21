@@ -23,6 +23,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
   const [profileImage, setProfileImage] = useState(
     loggedUser && loggedUser.profileImageUrl ? loggedUser.profileImageUrl : null
   );
+
+  //const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] =
+  //  useState(false);
+  //const [typedEmail, setTypedEmail] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -96,17 +101,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
 
   const handleCancel = () => {
     console.log("Canceling changes...");
+    //setIsDeleteConfirmationVisible(false); // Reset delete confirmation
+    //setTypedEmail("");
     onClose(); // Close the modal without saving
   };
 
-  {
-    /* 
   const handleDeleteAccount = () => {
     console.log("Account deletion requested");
     // Add logic to delete the account
   };
-*/
-  }
 
   return (
     <div className="profile-modal-overlay">
@@ -189,6 +192,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
           </div>
           */}
           <div className="modal-actions">
+            <button
+              className="delete-account-button"
+              onClick={handleDeleteAccount}
+            >
+              Delete Account
+            </button>
             <button className="cancel-button" onClick={handleCancel}>
               Cancel
             </button>
