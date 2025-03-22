@@ -24,9 +24,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
     loggedUser && loggedUser.profileImageUrl ? loggedUser.profileImageUrl : null
   );
 
-  //const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] =
-  //  useState(false);
-  //const [typedEmail, setTypedEmail] = useState("");
+  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] =
+    useState(false);
+  const [typedEmail, setTypedEmail] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -101,8 +101,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
 
   const handleCancel = () => {
     console.log("Canceling changes...");
-    //setIsDeleteConfirmationVisible(false); // Reset delete confirmation
-    //setTypedEmail("");
+    setIsDeleteConfirmationVisible(false); // Reset delete confirmation
+    setTypedEmail("");
     onClose(); // Close the modal without saving
   };
 
@@ -114,98 +114,127 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
   return (
     <div className="profile-modal-overlay">
       <div className="profile-modal">
-        <div className="profile-modal-header">
-          <h2>Edit Profile</h2>
-        </div>
-        <div className="profile-modal-content">
-          <div className="profile-image-section">
-            <div className="profile-image-container">
-              {profileImage ? (
-                <img
-                  src={profileImage}
-                  alt={`${loggedUser?.firstName} ${loggedUser?.lastName}`}
-                  className="profile-image"
-                />
-              ) : (
-                <div
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    borderRadius: "50%",
-                    backgroundColor,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginRight: "12px",
-                    color: "#fff",
-                  }}
-                >
-                  {getInitials(
-                    loggedUser ? loggedUser.firstName : "",
-                    loggedUser ? loggedUser.lastName : ""
+        {!isDeleteConfirmationVisible ? (
+          <>
+            <div className="profile-modal-header">
+              <h2>Edit Profile</h2>
+            </div>
+            <div className="profile-modal-content">
+              <div className="profile-image-section">
+                <div className="profile-image-container">
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={`${loggedUser?.firstName} ${loggedUser?.lastName}`}
+                      className="profile-image"
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        borderRadius: "50%",
+                        backgroundColor,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginRight: "12px",
+                        color: "#fff",
+                      }}
+                    >
+                      {getInitials(
+                        loggedUser ? loggedUser.firstName : "",
+                        loggedUser ? loggedUser.lastName : ""
+                      )}
+                    </div>
                   )}
+                  <div
+                    className="image-picker-icon"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <FontAwesomeIcon icon={faCamera} />
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                  />
                 </div>
-              )}
-              <div
-                className="image-picker-icon"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <FontAwesomeIcon icon={faCamera} />
+                <button
+                  className="remove-image-button"
+                  onClick={handleRemoveImage}
+                >
+                  <FontAwesomeIcon icon={faTrash} /> Remove Image
+                </button>
               </div>
+              <div className="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="delete-account-button"
+                  onClick={() => setIsDeleteConfirmationVisible(true)}
+                >
+                  Delete Account
+                </button>
+                <button className="cancel-button" onClick={handleCancel}>
+                  Cancel
+                </button>
+                <button className="save-button" onClick={handleSave}>
+                  Save
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="confirm-deletion-container">
+            {/* Delete Confirmation */}
+            <h2 style={{ marginTop: "0px" }}>Confirm Deletion</h2>
+            <div className="warning-box">
+              <p className="warning-message">
+                Are you sure you want to delete your account? You will lose all
+                your contacts and data if you choose to do so. Type your email
+                to confirm.
+              </p>
               <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                ref={fileInputRef}
-                style={{ display: "none" }}
+                type="email"
+                placeholder="Enter your email"
+                value={typedEmail}
+                onChange={(e) => setTypedEmail(e.target.value)}
+                required
               />
             </div>
-            <button className="remove-image-button" onClick={handleRemoveImage}>
-              <FontAwesomeIcon icon={faTrash} /> Remove Image
-            </button>
+            <div className="modal-actions-confirm">
+              <button
+                onClick={() => handleDeleteAccount()}
+                className="delete-account-button"
+              >
+                Yes, delete my account
+              </button>
+              <button
+                onClick={() => setIsDeleteConfirmationVisible(false)}
+                className="cancel-confirm-button"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-          <div className="form-group">
-            <label>First Name</label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label>Last Name</label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
-          {/* Deletion logic, implement some time */}
-          {/*
-          <div className="form-group">
-            <button
-              className="delete-account-button"
-              onClick={handleDeleteAccount}
-            >
-              Delete Account
-            </button>
-          </div>
-          */}
-          <div className="modal-actions">
-            <button
-              className="delete-account-button"
-              onClick={handleDeleteAccount}
-            >
-              Delete Account
-            </button>
-            <button className="cancel-button" onClick={handleCancel}>
-              Cancel
-            </button>
-            <button className="save-button" onClick={handleSave}>
-              Save
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
