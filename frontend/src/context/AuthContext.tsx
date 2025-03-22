@@ -1,5 +1,5 @@
 // AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { UserType, AuthContextType } from "../types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -7,47 +7,82 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  //const [isLoading, setIsLoading] = useState(true); // Initialize as true
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token") || null
+  );
+  const [user, setUser] = useState<UserType | null>(
+    localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user")!)
+      : null
+  );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Initialize as true
-  console.log("Loader initialized true");
-  const [user, setUser] = useState<UserType | null>(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [loading, setLoading] = useState<boolean>(true); // Add loading state
 
-  // Check if the user is authenticated on initial load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/login/check-auth`, {
-          credentials: "include", // Include cookies
-        });
+  const login = (newToken: string, newUser: UserType) => {
+    localStorage.setItem("token", newToken);
+    localStorage.setItem("user", JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+    setIsAuthenticated(true);
+  };
 
-        if (response.ok) {
-          const result = await response.json();
-
-          console.log("Auth response is ", result);
-          setIsAuthenticated(response.ok);
-          setUser(result.user);
-        }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false); // Set loading to false after the check is complete
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const login = () => setIsAuthenticated(true);
   const logout = () => {
-    setIsAuthenticated(false);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
     setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const validateToken = async (): Promise<boolean> => {
+    setLoading(true); // Start loading
+
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
+      setLoading(false); // Stop loading
+      return false;
+    }
+
+    try {
+      // Send token to backend for validation
+      const response = await fetch("/login/validate-token", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setLoading(false); // Stop loading
+        return true;
+      } else {
+        logout();
+        setLoading(false); // Stop loading
+        setIsAuthenticated(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("Token validation failed:", error);
+      setLoading(false); // Stop loading
+      logout();
+      return false;
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, isAuthenticated, isLoading, login, logout }}
+      value={{
+        user,
+        setUser,
+        isAuthenticated,
+        token,
+        login,
+        logout,
+        validateToken,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>

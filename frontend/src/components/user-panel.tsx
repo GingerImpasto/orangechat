@@ -15,12 +15,10 @@ interface UserPanelProps {
   onLogout: () => void;
   onUserClick: (user: UserType) => void;
   selectedUser: UserType | null;
-  authLoading: boolean;
   usersLoading: boolean;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
-  authLoading,
   usersLoading,
   users,
   onLogout,
@@ -65,7 +63,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
     };
   }, []);
 
-  if (usersLoading || authLoading) {
+  if (usersLoading) {
     return (
       <div className="user-panel">
         <UserPanelSkeleton />;

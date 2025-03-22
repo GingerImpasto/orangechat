@@ -7,12 +7,14 @@ export interface UserType {
 }
 
 export interface AuthContextType {
+  token: string | null;
   user: UserType | null;
+  loading: boolean;
   setUser: (user: UserType | null) => void;
   isAuthenticated: boolean;
-  isLoading: boolean; // Add a loading state
-  login: () => void;
+  login: (token: string, newUser: UserType) => void;
   logout: () => void;
+  validateToken: () => Promise<boolean>;
 }
 
 export type MessageType = {

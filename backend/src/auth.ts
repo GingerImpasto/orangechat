@@ -1,28 +1,28 @@
 import session from "express-session";
 import { checkUserExistence, createUser, fetchUser } from "./users";
 import bcrypt from "bcryptjs";
-
-export const cookieSession = session({
-  secret: `${process.env.SESSION_SECRET}`, // Replace with a strong secret key
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
-    secure: process.env.NODE_ENVIRONMENT === "production", // Use HTTPS in production
-    maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day,
-    sameSite: "lax",
-  },
-});
+import jwt from "jsonwebtoken";
 
 console.log("Environment:", process.env.NODE_ENVIRONMENT);
+const JWT_SECRET: string = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
 
-export const checkAuth = async (req: any, res: any) => {
-  if (req.session.user) {
-    const loggedUser = await fetchUser(req.session.user.email);
-    res.status(200).json({ isAuthenticated: true, user: loggedUser });
-  } else {
-    res.status(401).json({ isAuthenticated: false });
+export const authenticateToken = (req: any, res: any, next: any) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
   }
+
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token." });
+    }
+    req.user = decoded;
+    next();
+  });
 };
 
 export const loginUser = async (req: any, res: any) => {
@@ -47,16 +47,14 @@ export const loginUser = async (req: any, res: any) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Create a session for the authenticated user
-    req.session.user = {
-      id: user.id,
-      email: user.email,
-    };
-
-    // Log the Set-Cookie header
-    res.on("finish", () => {
-      //console.log("Set-Cookie Header:", res.getHeader("Set-Cookie"));
-    });
+    // Generate JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     // Return a success response
     res.status(200).json({
@@ -68,6 +66,7 @@ export const loginUser = async (req: any, res: any) => {
         lastName: user.lastName,
         profileImageUrl: user.profileImageUrl,
       },
+      token: token,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -97,13 +96,21 @@ export const signupUser = async (req: any, res: any) => {
     // Return the newly created user data (excluding the password for security)
     const { password: _, ...userWithoutPassword } = newUser;
 
-    // Log the user in by creating a session
-    req.session.user = { id: newUser.id, email: newUser.email };
+    // Generate JWT
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET!,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     // Redirect to the home page
-    return res
-      .status(201)
-      .json({ message: "Registration successful", user: newUser });
+    return res.status(201).json({
+      message: "Registration successful",
+      user: newUser,
+      token: token,
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal server error" });

@@ -13,7 +13,7 @@ const Home: React.FC = () => {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [error, setError] = useState("");
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
 
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]); // Use the Message type
@@ -27,24 +27,8 @@ const Home: React.FC = () => {
   };
 
   const logoutUser = async () => {
-    try {
-      const response = await fetch(`/home/logout`, {
-        method: "POST",
-        credentials: "include", // Include cookies in the request
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error("Logout failed:", result.error);
-      } else {
-        // Redirect to the login page after successful logout
-        logout();
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
+    logout();
+    navigate("/login");
   };
 
   useEffect(() => {
@@ -164,7 +148,6 @@ const Home: React.FC = () => {
           onUserClick={handleUserClick}
           selectedUser={selectedUser}
           usersLoading={usersLoading}
-          authLoading={isLoading}
         />
         <MessageFeed
           messages={messages}

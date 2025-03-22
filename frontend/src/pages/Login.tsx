@@ -7,7 +7,6 @@ import {
   validateName,
 } from "../utils/validators";
 import { useAuth } from "../context/AuthContext";
-import Loader from "../components/Loader";
 import "../login.css";
 
 interface FormData {
@@ -19,6 +18,8 @@ interface FormData {
 
 function Login() {
   const [action, setAction] = useState("login");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -30,7 +31,7 @@ function Login() {
   //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, login, setUser } = useAuth();
+  const { token, login } = useAuth();
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -85,10 +86,10 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (isFormValid()) {
       // Form is valid, proceed with submission
-      console.log("Form is valid, submitting...", formData);
       // Add your submission logic here
 
       try {
@@ -107,9 +108,7 @@ function Login() {
         const result = await response.json();
 
         if (response.ok) {
-          console.log("login/sign up Success:", result);
-          login();
-          setUser(result.user);
+          login(result.token, result.user);
           navigate("/");
         } else {
           // Handle bad request (e.g., user already exists)
@@ -125,6 +124,8 @@ function Login() {
       } catch (error) {
         console.log("has error");
         console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
       }
     } else {
       // Form is invalid, show error messages
@@ -134,12 +135,15 @@ function Login() {
 
   useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
 
-  if (isLoading) {
-    return <Loader />; // Show the loader while checking authentication
-  }
+  const buttonText: string = isLoading
+    ? "Logging in..."
+    : action === "login"
+    ? "Sign In"
+    : "Create account";
 
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+  // Redirect to home if already logged in
+  if (token) {
+    return <Navigate to="/" />;
   }
 
   return (
@@ -206,9 +210,9 @@ function Login() {
           <button
             type="submit"
             className="login-submit-button"
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || isLoading}
           >
-            {action === "login" ? "Sign In" : "Create account"}
+            {buttonText}
           </button>
         </form>
       </div>

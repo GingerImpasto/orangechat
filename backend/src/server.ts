@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
+import bodyParser from "body-parser";
 import cors from "cors";
 import loginRoutes from "./routes/login";
 import homeRoutes from "./routes/home";
 import cookieParser from "cookie-parser";
-import { cookieSession } from "./auth";
 import path from "path";
 
 const app = express();
@@ -14,18 +14,11 @@ app.use(express.static(path.join(__dirname, "../frontend-dist")));
 
 // Middleware
 // Configure CORS
-app.use(
-  cors({
-    origin: "http://localhost:5173", // Allow requests from this origin
-    credentials: true, // Allow credentials (cookies)
-  })
-);
+app.use(cors());
+app.use(bodyParser.json());
 
 app.use(express.json());
 app.use(cookieParser());
-
-// Configure session middleware
-app.use(cookieSession);
 
 app.use("/login", loginRoutes);
 app.use("/home", homeRoutes);
