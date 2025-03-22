@@ -8,13 +8,13 @@ export const cookieSession = session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
-    secure: process.env.NODE_ENV === "production", // Use HTTPS in production
+    secure: process.env.NODE_ENVIRONMENT === "production", // Use HTTPS in production
     maxAge: 1000 * 60 * 60 * 24, // Session expires in 1 day,
     sameSite: "lax",
   },
 });
 
-console.log("Environment:", process.env.NODE_ENV);
+console.log("Environment:", process.env.NODE_ENVIRONMENT);
 
 export const checkAuth = async (req: any, res: any) => {
   if (req.session.user) {
