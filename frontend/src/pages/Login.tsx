@@ -27,7 +27,7 @@ function Login() {
   });
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, login, setUser } = useAuth();
@@ -93,9 +93,7 @@ function Login() {
 
       try {
         const response = await fetch(
-          `${API_BASE_URL}/login/submit-${
-            action === "login" ? "login" : "signup"
-          }-form`,
+          `/login/submit-${action === "login" ? "login" : "signup"}-form`,
           {
             method: "POST",
             headers: {
@@ -109,7 +107,7 @@ function Login() {
         const result = await response.json();
 
         if (response.ok) {
-          console.log("Success:", result);
+          console.log("login/sign up Success:", result);
           login();
           setUser(result.user);
           navigate("/");
@@ -137,7 +135,6 @@ function Login() {
   useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
 
   if (isLoading) {
-    console.log("Login loading");
     return <Loader />; // Show the loader while checking authentication
   }
 

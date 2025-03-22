@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "start": "cd backend && npm start",
-    "build": "npm run build:frontend && npm run build:backend && npm run copy:frontend",
+    "build": "npm run build:frontend && npm run build:backend && npm run move",
     "build:frontend": "cd frontend && npm install && npm run build",
     "build:backend": "cd backend && npm install && npm run build",
-    "copy:frontend": "cp -r frontend/dist backend/frontend-dist"
+    "move": "npm run clean:frontend-dist && npm run copy:frontend",
+    "copy:frontend": "cp -r frontend/dist backend/frontend-dist",
+    "clean:frontend-dist": "rm -rf backend/frontend-dist"
   }
 }
