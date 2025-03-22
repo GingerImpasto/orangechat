@@ -223,6 +223,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
               <button
                 onClick={() => handleDeleteAccount()}
                 className="delete-account-button"
+                disabled={typedEmail !== loggedUser?.email} // Disable if emails don't match
               >
                 Yes, delete my account
               </button>

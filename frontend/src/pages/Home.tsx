@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import UserPanel from "../components/user-panel";
 import React, { useState, useEffect } from "react";
-import Loader from "../components/Loader";
 import MessageFeed from "../components/message-feed";
 
 import { UserType, MessageType } from "../types";
@@ -153,10 +152,6 @@ const Home: React.FC = () => {
     }
   };
 
-  if (usersLoading || isLoading || messagesLoading) {
-    return <Loader />;
-  }
-
   return (
     <>
       <div className="home-page">
@@ -166,11 +161,14 @@ const Home: React.FC = () => {
           onLogout={logoutUser}
           onUserClick={handleUserClick}
           selectedUser={selectedUser}
+          usersLoading={usersLoading}
+          authLoading={isLoading}
         />
         <MessageFeed
           messages={messages}
           selectedUser={selectedUser}
           onSendMessage={handleSendMessage}
+          isLoading={messagesLoading}
         />
       </div>
     </>

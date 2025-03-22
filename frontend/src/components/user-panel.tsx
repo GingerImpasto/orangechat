@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "../styles/UserPanel.css"; // Import the CSS file
 import UserElement from "./user-element";
 import ProfileModal from "./ProfileModal";
+import UserPanelSkeleton from "./UserPanelSkeleton";
 import { UserType } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
@@ -14,9 +15,13 @@ interface UserPanelProps {
   onLogout: () => void;
   onUserClick: (user: UserType) => void;
   selectedUser: UserType | null;
+  authLoading: boolean;
+  usersLoading: boolean;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
+  authLoading,
+  usersLoading,
   users,
   onLogout,
   onUserClick,
@@ -59,6 +64,14 @@ const UserPanel: React.FC<UserPanelProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  if (usersLoading || authLoading) {
+    return (
+      <div className="user-panel">
+        <UserPanelSkeleton />;
+      </div>
+    );
+  }
 
   return (
     <div className="user-panel">

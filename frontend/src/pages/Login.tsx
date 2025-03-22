@@ -137,6 +137,7 @@ function Login() {
   useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
 
   if (isLoading) {
+    console.log("Login loading");
     return <Loader />; // Show the loader while checking authentication
   }
 

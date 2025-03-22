@@ -9,6 +9,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Initialize as true
+  console.log("Loader initialized true");
   const [user, setUser] = useState<UserType | null>(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

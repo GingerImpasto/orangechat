@@ -2,15 +2,18 @@ import React from "react";
 import { UserType, MessageType } from "../types"; // Assuming you have a types file
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
+import MessageFeedSkeleton from "./MessageFeedSkeleton";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
+  isLoading: boolean;
   messages: MessageType[];
   selectedUser: UserType | null;
   onSendMessage: (formData: FormData) => Promise<void>; // Callback to handle sending messages
 }
 
 const MessageFeed: React.FC<MessageFeedProps> = ({
+  isLoading,
   messages,
   selectedUser,
   onSendMessage,
@@ -36,8 +39,12 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   const groupedMessages = groupMessagesByDate(messages);
 
-  if (!selectedUser) {
-    return <div className="messages-container">No user selected.</div>;
+  if (!selectedUser || isLoading) {
+    return (
+      <div className="message-feed-top-container">
+        <MessageFeedSkeleton />
+      </div>
+    );
   }
 
   return (

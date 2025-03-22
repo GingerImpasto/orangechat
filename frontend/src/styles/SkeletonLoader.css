@@ -1,0 +1,79 @@
+/* Skeleton Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-item {
+  animation: shimmer 1.5s infinite linear;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+}
+
+.message-feed-skeleton {
+  padding: 16px;
+}
+
+.skeleton-message {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.skeleton-message.incoming {
+  justify-content: flex-start;
+}
+
+.skeleton-message.outgoing {
+  justify-content: flex-end;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin-right: 8px;
+  animation: shimmer 1.5s infinite linear;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+}
+
+.skeleton-content {
+  max-width: 70%;
+}
+
+.skeleton-text {
+  height: 12px;
+  background: #e0e0e0;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite linear;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+}
+
+.skeleton-text.short {
+  width: 120px;
+}
+
+.skeleton-text.medium {
+  width: 200px;
+}
+
+.skeleton-text.long {
+  width: 250px;
+}
+
+/* Outgoing message specific styles */
+.skeleton-message.outgoing .skeleton-content {
+  align-items: flex-end;
+}
+
+.skeleton-message.outgoing .skeleton-text {
+  background: #dcf8c6; /* Light green, similar to WhatsApp's outgoing message color */
+}

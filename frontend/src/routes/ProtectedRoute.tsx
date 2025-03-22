@@ -8,6 +8,7 @@ const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
+    console.log("protectedRoute loader");
     return <Loader />; // Show the loader while checking authentication
   }
 

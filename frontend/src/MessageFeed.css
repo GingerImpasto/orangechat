@@ -44,8 +44,8 @@
 
 /* Styling for sent messages (current user) */
 .message-bubble.message-sent {
-  background-color: olivedrab;
-  color: white;
+  background-color: #dcf8c6;
+  color: #444;
 }
 
 /* Styling for received messages (other users) */

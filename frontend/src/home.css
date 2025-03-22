@@ -1,9 +1,5 @@
 .home-page {
   display: flex;
-  align-items: center;
   width: 100vw;
   height: 100vh;
-  background-color: greenyellow;
-  color: chocolate;
-  font-size: 1em;
 }
