@@ -14,6 +14,8 @@ export const cookieSession = session({
   },
 });
 
+console.log("Environment:", process.env.NODE_ENV);
+
 export const checkAuth = async (req: any, res: any) => {
   if (req.session.user) {
     const loggedUser = await fetchUser(req.session.user.email);
