@@ -5,6 +5,7 @@ import { faCamera, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { UserType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { stringToColor, getInitials } from "../utils/imageDisplay";
+import { useNavigate } from "react-router";
 
 interface ProfileModalProps {
   loggedUser: UserType | null;
@@ -12,7 +13,7 @@ interface ProfileModalProps {
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
-  const { setUser } = useAuth();
+  const { setUser, token, logout } = useAuth();
 
   const [firstName, setFirstName] = useState(
     loggedUser ? loggedUser.firstName : ""
@@ -27,6 +28,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
   const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] =
     useState(false);
   const [typedEmail, setTypedEmail] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -105,9 +108,33 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
     onClose(); // Close the modal without saving
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     console.log("Account deletion requested");
-    // Add logic to delete the account
+
+    setIsDeleting(true);
+    try {
+      // Call the backend delete endpoint
+      const response = await fetch(`/home/${loggedUser?.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete account");
+      }
+
+      // Sign out after successful deletion
+      setIsDeleting(false);
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Account deletion error:", error);
+      alert("Failed to delete account. Please try again.");
+    } finally {
+    }
   };
 
   return (
@@ -222,9 +249,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
               <button
                 onClick={() => handleDeleteAccount()}
                 className="delete-account-button"
-                disabled={typedEmail !== loggedUser?.email} // Disable if emails don't match
+                disabled={typedEmail !== loggedUser?.email || isDeleting} // Disable if emails don't match
               >
-                Yes, delete my account
+                {isDeleting ? "Deleting..." : "Yes, Delete my Account"}
               </button>
               <button
                 onClick={() => setIsDeleteConfirmationVisible(false)}

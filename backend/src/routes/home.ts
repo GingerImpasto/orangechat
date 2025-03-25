@@ -1,5 +1,13 @@
 import express, { Request, Response } from "express";
-import { getOtherUsers, updateProfile } from "../users";
+import {
+  getOtherUsers,
+  updateProfile,
+  getUserMessageImages,
+  getUserProfilePicture,
+  deleteStorageFiles,
+  deleteUserMessages,
+  deleteUserRecord,
+} from "../users";
 import {
   fetchMessagesBetweenUsers,
   storeMessage,
@@ -156,5 +164,38 @@ router.post(
     }
   }
 );
+
+router.delete("/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // 1. Get all files that need to be deleted
+    const messageImages = await getUserMessageImages(userId);
+    const profilePicture = await getUserProfilePicture(userId);
+
+    // 2. Combine all file paths
+    const filesToDelete = [...messageImages];
+    if (profilePicture) filesToDelete.push(profilePicture);
+
+    // 3. Delete all files from storage
+    await deleteStorageFiles(filesToDelete);
+
+    // 4. Delete all user messages
+    await deleteUserMessages(userId);
+
+    // 5. Delete user record
+    await deleteUserRecord(userId);
+
+    res
+      .status(200)
+      .json({ message: "User and all related data deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({
+      error: "Failed to delete user",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 export default router;

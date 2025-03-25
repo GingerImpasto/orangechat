@@ -89,3 +89,61 @@ export const updateProfile = async (
     throw new Error(`Failed to update profile: ${error.message}`);
   }
 };
+
+export async function getUserMessageImages(userId: string): Promise<string[]> {
+  const { data: messagesWithImages, error } = await supabase
+    .from("messages")
+    .select("imageUrl")
+    .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
+    .not("imageUrl", "is", null);
+
+  if (error) throw new Error(`Failed to get message images: ${error.message}`);
+
+  return (
+    (messagesWithImages
+      ?.map((msg) => msg.imageUrl?.split("whisperchat-images/")[1])
+      .filter(Boolean) as string[]) || []
+  );
+}
+
+export async function getUserProfilePicture(
+  userId: string
+): Promise<string | null> {
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("profileImageUrl")
+    .eq("id", userId)
+    .single();
+
+  if (error) throw new Error(`Failed to get user profile: ${error.message}`);
+
+  return user?.profileImageUrl
+    ? user.profileImageUrl.split("whisperchat-images/")[1]
+    : null;
+}
+
+export async function deleteStorageFiles(filePaths: string[]): Promise<void> {
+  if (filePaths.length === 0) return;
+
+  const { error } = await supabase.storage
+    .from("whisperchat-images")
+    .remove(filePaths);
+
+  if (error)
+    throw new Error(`Failed to delete storage files: ${error.message}`);
+}
+
+export async function deleteUserMessages(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .or(`senderId.eq.${userId},receiverId.eq.${userId}`);
+
+  if (error) throw new Error(`Failed to delete messages: ${error.message}`);
+}
+
+export async function deleteUserRecord(userId: string): Promise<void> {
+  const { error } = await supabase.from("users").delete().eq("id", userId);
+
+  if (error) throw new Error(`Failed to delete user record: ${error.message}`);
+}
