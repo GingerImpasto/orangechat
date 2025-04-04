@@ -2,25 +2,51 @@ import session from "express-session";
 import { checkUserExistence, createUser, fetchUser } from "./users";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
+
+// Define your JWT payload type
+interface JwtPayload {
+  id: string;
+  email: string;
+  [key: string]: any;
+}
 
 console.log("Environment:", process.env.NODE_ENVIRONMENT);
 const JWT_SECRET: string = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
 
-export const authenticateToken = (req: any, res: any, next: any) => {
+declare module "express" {
+  interface Request {
+    user?: {
+      id: string;
+      email: string;
+      [key: string]: any;
+    };
+  }
+}
+
+export const authenticateToken = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided." });
+    res.status(401).json({ message: "Access denied. No token provided." });
+    return;
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+  jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: "Invalid or expired token." });
+      res.status(403).json({
+        message:
+          err.name === "TokenExpiredError" ? "Token expired" : "Invalid token",
+      });
+      return;
     }
-    req.user = decoded;
+
+    req.user = decoded as { id: string; email: string };
     next();
   });
 };

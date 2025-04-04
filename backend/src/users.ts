@@ -36,6 +36,42 @@ export const createUser = async (userData: RegisterForm) => {
   return newUser;
 };
 
+/**
+ * Searches for users based on a query string (searches first name, last name, and email)
+ * @param query The search string
+ * @param currentUserEmail Email of the current user (to exclude from results)
+ * @returns Array of matching users
+ */
+export const searchUsers = async (query: string, currentUserEmail: string) => {
+  try {
+    // If query is empty, return all other users (same as getOtherUsers)
+    if (!query.trim()) {
+      return await getOtherUsers(currentUserEmail);
+    }
+
+    const searchTerm = `%${query}%`; // For partial matching
+
+    // Using Supabase's like and ilike for case-insensitive partial matching
+    const { data: users, error } = await supabase
+      .from("users")
+      .select("*")
+      .neq("email", currentUserEmail) // Exclude current user
+      .or(
+        `firstName.ilike.${searchTerm},lastName.ilike.${searchTerm},email.ilike.${searchTerm}`
+      )
+      .order("firstName", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return users || [];
+  } catch (error) {
+    console.error("Error in searchUsers:", error);
+    throw error;
+  }
+};
+
 export const fetchUser = async (email: string) => {
   const { data: user, error } = await supabase
     .from("users")

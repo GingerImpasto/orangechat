@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router";
-import FormField from "../components/form-field";
+import FormField from "../components/FormField";
 import {
   validateEmail,
   validatePassword,

@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import "../styles/UserPanel.css"; // Import the CSS file
-import UserElement from "./user-element";
+import "../styles/UserPanel.css";
+import UserElement from "./UserElement";
 import ProfileModal from "./ProfileModal";
 import UserPanelSkeleton from "./UserPanelSkeleton";
+import FindFriendsModal from "./FindFriendsModal";
 import { UserType } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faUser,
+  faSignOutAlt,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 import { stringToColor, getInitials } from "../utils/imageDisplay";
 
@@ -28,6 +33,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
 }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
+  const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<UserType[]>([]);
   const popupRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -37,11 +45,48 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   const handleProfileClick = () => {
     setProfileModalOpen(true);
-    setPopupOpen(false); // Close the popup when opening the modal
+    setPopupOpen(false);
   };
 
   const handleCloseProfileModal = () => {
     setProfileModalOpen(false);
+  };
+
+  const handleFindFriendsClick = () => {
+    setIsFindFriendsOpen(true);
+    setPopupOpen(false);
+  };
+
+  const handleCloseFindFriends = () => {
+    setIsFindFriendsOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      // Replace with your actual API call to search users
+      const response = await fetch(
+        `/home/searchUsers?query=${encodeURIComponent(query)}`
+      );
+      const results = await response.json();
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const handleAddFriend = async (userId: string) => {
+    // Replace with your actual API call to add friend
+    await fetch("/home/addFriend", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ friendId: userId }),
+    });
+    // Optionally update UI or show success message
   };
 
   // Close popup when clicking outside
@@ -66,23 +111,30 @@ const UserPanel: React.FC<UserPanelProps> = ({
   if (usersLoading) {
     return (
       <div className="user-panel">
-        <UserPanelSkeleton />;
+        <UserPanelSkeleton />
       </div>
     );
   }
 
   return (
     <div className="user-panel">
+      {/* User List */}
       <div className="user-list">
-        {users.map((user) => (
-          <UserElement
-            key={user.id}
-            user={user}
-            onClick={() => onUserClick(user)}
-            isSelected={selectedUser?.id === user.id}
-          />
-        ))}
+        {users.length > 0 ? (
+          users.map((user) => (
+            <UserElement
+              key={user.id}
+              user={user}
+              onClick={() => onUserClick(user)}
+              isSelected={selectedUser?.id === user.id}
+            />
+          ))
+        ) : (
+          <div className="no-results">No users available</div>
+        )}
       </div>
+
+      {/* Footer with User Profile */}
       <div
         className="user-footer"
         ref={footerRef}
@@ -113,16 +165,21 @@ const UserPanel: React.FC<UserPanelProps> = ({
         )}
         <span className="username">
           {user?.firstName} {user?.lastName}
-        </span>{" "}
+        </span>
       </div>
 
+      {/* Profile Popup */}
       {isPopupOpen && (
         <div className="popup" ref={popupRef}>
           <div className="popup-item" onClick={handleProfileClick}>
             <FontAwesomeIcon icon={faUser} className="popup-icon" />
             <span>Profile</span>
           </div>
-          <div className="popup-divider" /> {/* Divider */}
+          <div className="popup-item" onClick={handleFindFriendsClick}>
+            <FontAwesomeIcon icon={faUserPlus} className="popup-icon" />
+            <span>Find Friends</span>
+          </div>
+          <div className="popup-divider" />
           <div className="popup-item" onClick={onLogout}>
             <FontAwesomeIcon icon={faSignOutAlt} className="popup-icon" />
             <span>Logout</span>
@@ -137,6 +194,16 @@ const UserPanel: React.FC<UserPanelProps> = ({
           loggedUser={loggedUser}
         />
       )}
+
+      {/* Find Friends Modal */}
+      <FindFriendsModal
+        isOpen={isFindFriendsOpen}
+        onClose={handleCloseFindFriends}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        onAddFriend={handleAddFriend}
+        searchQuery={searchQuery}
+      />
     </div>
   );
 };

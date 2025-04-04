@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import {
   getOtherUsers,
+  searchUsers,
   updateProfile,
   getUserMessageImages,
   getUserProfilePicture,
@@ -47,6 +48,16 @@ router.get("/getOtherUsers", async (req: any, res: any) => {
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/searchUsers", async (req, res) => {
+  try {
+    const { query, email } = req.query;
+    const users = await searchUsers(query as string, email as string);
+    res.json(users);
+  } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

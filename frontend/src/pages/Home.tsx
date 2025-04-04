@@ -1,9 +1,9 @@
 import "../home.css";
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import UserPanel from "../components/user-panel";
+import UserPanel from "../components/UserPanel";
 import React, { useState, useEffect } from "react";
-import MessageFeed from "../components/message-feed";
+import MessageFeed from "../components/MessageFeed";
 
 import { UserType, MessageType } from "../types";
 
@@ -30,30 +30,29 @@ const Home: React.FC = () => {
     logout();
     navigate("/login");
   };
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    setError("");
+
+    try {
+      // Call the /getOtherUsers endpoint
+      const response = await fetch(`/home/getOtherUsers?email=${email}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+
+      const data = await response.json();
+      setUsers(data);
+      setSelectedUser(data[0]);
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+      console.error(error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      setUsersLoading(true);
-      setError("");
-
-      try {
-        // Call the /getOtherUsers endpoint
-        const response = await fetch(`/home/getOtherUsers?email=${email}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-
-        const data = await response.json();
-        setUsers(data);
-        setSelectedUser(data[0]);
-      } catch (err: any) {
-        setError(err.message || "An error occurred");
-        console.error(error);
-      } finally {
-        setUsersLoading(false);
-      }
-    };
-
     fetchUsers();
   }, [email]);
 

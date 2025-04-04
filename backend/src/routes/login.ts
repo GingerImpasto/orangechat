@@ -1,19 +1,25 @@
 import express from "express";
 import { loginUser, signupUser, authenticateToken } from "../auth";
-
+import { Request, Response } from "express";
 const router = express.Router();
 
-// Protected route
-router.post("/validate-token", authenticateToken, (req: any, res: any) => {
-  // Access the user's id and email from the decoded token
-  const userId = req.user.id;
-  const userEmail = req.user.email;
+// Properly typed protected route
+router.post(
+  "/validate-token",
+  (req, res, next) => {
+    authenticateToken(req, res, next);
+  },
+  (req, res) => {
+    // TypeScript now knows req.user exists
+    const { id, email } = req.user!;
 
-  // Optionally, you can query your database to verify the user's details
-  // For example: const user = await User.findById(userId);
-
-  res.json({ message: "Access granted", userId, userEmail });
-});
+    res.json({
+      message: "Access granted",
+      user: { id, email },
+      isValid: true,
+    });
+  }
+);
 
 router.post("/submit-login-form", loginUser);
 router.post("/submit-signup-form", signupUser);

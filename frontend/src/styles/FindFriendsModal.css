@@ -1,0 +1,135 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Container */
+.find-friends-modal {
+  background: white;
+  border-radius: 8px;
+  width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #495057;
+}
+
+/* Modal Content */
+.modal-content {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Search Results */
+.search-results {
+  margin-top: 16px;
+}
+
+.user-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-result:last-child {
+  border-bottom: none;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-names {
+  color: #444;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e1e4e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #495057;
+}
+
+/* Add Friend Button */
+.add-friend-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.add-friend-button:hover {
+  background-color: #3e8e41;
+}
+
+.add-friend-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* No Results Message */
+.no-results {
+  padding: 20px 0;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}

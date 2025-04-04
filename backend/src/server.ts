@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import loginRoutes from "./routes/login";
 import homeRoutes from "./routes/home";
+import friendsRoutes from "./routes/friends";
 import cookieParser from "cookie-parser";
 import path from "path";
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 
 app.use("/login", loginRoutes);
 app.use("/home", homeRoutes);
+app.use("/friends", friendsRoutes);
 
 // Fallback to index.html for client-side routing
 app.get("*", (req, res) => {
