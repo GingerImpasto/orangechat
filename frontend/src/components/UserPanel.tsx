@@ -3,7 +3,6 @@ import "../styles/UserPanel.css";
 import UserElement from "./UserElement";
 import ProfileModal from "./ProfileModal";
 import UserPanelSkeleton from "./UserPanelSkeleton";
-import FindFriendsModal from "./FindFriendsModal";
 import FriendRequestsModal from "./FriendRequestsModal";
 import { UserType, FriendRequestType } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,6 +24,8 @@ interface UserPanelProps {
   usersLoading: boolean;
   pendingRequests?: FriendRequestType[];
   requestsLoading: boolean;
+  isFirstTimeUser?: boolean;
+  onFindFriendsClick?: () => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -36,13 +37,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
   loggedUser,
   pendingRequests = [],
   requestsLoading,
+  isFirstTimeUser,
+  onFindFriendsClick,
 }) => {
+  console.log("Pending requests in user panel is ... ", pendingRequests);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
-  const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<UserType[]>([]);
   const popupRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -54,64 +55,75 @@ const UserPanel: React.FC<UserPanelProps> = ({
     setPopupOpen(false);
   };
 
-  const handleFindFriendsClick = () => {
-    setIsFindFriendsOpen(true);
-    setPopupOpen(false);
-  };
-
   const handleFriendRequestsClick = () => {
     setIsRequestsOpen(true);
     setPopupOpen(false);
   };
 
-  const handleCloseModals = () => {
-    setIsFindFriendsOpen(false);
-    setSearchQuery("");
-    setSearchResults([]);
-  };
-
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim()) {
-      try {
-        const response = await fetch(
-          `/home/searchUsers?query=${encodeURIComponent(query)}`
-        );
-        const results = await response.json();
-        setSearchResults(results);
-      } catch (error) {
-        console.error("Search failed:", error);
-      }
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const onAcceptRequest = () => {};
-  const onRefreshRequests = () => {};
-  const onRejectRequest = () => {};
-
-  const handleAddFriend = async (userId: string) => {
-    console.log("Inside handle add friend");
+  const onAcceptRequest = async (requestId: string) => {
+    console.log("accepting request ...");
     try {
-      const response = await fetch("/friends/sendFriendRequest", {
+      const response = await fetch("/friends/acceptFriendRequest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // or your auth token
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ receiverId: userId }),
+        body: JSON.stringify({ requestId }),
       });
-      onRefreshRequests?.();
 
       if (!response.ok) {
-        throw new Error("Failed to send friend request");
+        throw new Error("Failed to accept friend request");
       }
 
-      // Handle success (maybe update UI or show notification)
+      // Refresh the pending requests list
+      onRefreshRequests?.();
     } catch (error) {
-      console.error("Error adding friend:", error);
-      // Handle error (show error message to user)
+      console.error("Error accepting friend request:", error);
+      // Optionally show an error message to the user
+    }
+  };
+
+  const onRejectRequest = async (requestId: string) => {
+    try {
+      const response = await fetch("/friends/rejectFriendRequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ requestId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reject friend request");
+      }
+
+      // Refresh the pending requests list
+      onRefreshRequests?.();
+    } catch (error) {
+      console.error("Error rejecting friend request:", error);
+      // Optionally show an error message to the user
+    }
+  };
+
+  const onRefreshRequests = async () => {
+    try {
+      const response = await fetch("/friends/pendingRequests", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch pending requests");
+      }
+
+      // const updatedRequests = await response.json();
+      // Update the pendingRequests state in the parent component (if needed)
+      // This assumes the parent component handles the state for pendingRequests
+    } catch (error) {
+      console.error("Error refreshing requests:", error);
     }
   };
 
@@ -143,6 +155,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   return (
     <div className="user-panel">
+      {isFirstTimeUser && (
+        <div className="first-time-banner">
+          <p>Start by adding friends!</p>
+          <button onClick={onFindFriendsClick}>Find Friends</button>
+        </div>
+      )}
+
       <div className="user-list">
         {users.length > 0 ? (
           users.map((user) => (
@@ -188,7 +207,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
             <FontAwesomeIcon icon={faUser} className="popup-icon" />
             <span>Profile</span>
           </div>
-          <div className="popup-item" onClick={handleFindFriendsClick}>
+          <div
+            className="popup-item"
+            onClick={() => {
+              setPopupOpen(false);
+              onFindFriendsClick?.();
+            }}
+          >
             <FontAwesomeIcon icon={faUserPlus} className="popup-icon" />
             <span>Find Friends</span>
           </div>
@@ -212,21 +237,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
         loggedUser={loggedUser}
       />
 
-      <FindFriendsModal
-        isOpen={isFindFriendsOpen}
-        onClose={handleCloseModals}
-        onSearch={handleSearch}
-        searchResults={searchResults}
-        onAddFriend={handleAddFriend}
-        searchQuery={searchQuery}
-      />
-
       <FriendRequestsModal
         isOpen={isRequestsOpen}
         requests={pendingRequests}
         onClose={() => setIsRequestsOpen(false)}
-        onAccept={onAcceptRequest || (() => {})}
-        onReject={onRejectRequest || (() => {})}
+        onAccept={onAcceptRequest}
+        onReject={onRejectRequest}
         onRefresh={onRefreshRequests}
       />
     </div>

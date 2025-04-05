@@ -8,6 +8,7 @@
   color: #fff;
   padding: 16px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .user-list {
@@ -45,6 +46,51 @@
 .user-row.selected {
   background-color: #ffa500;
   color: #fff;
+}
+
+/* First-time user banner */
+.first-time-banner {
+  padding: 12px;
+  background-color: #e67c22;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  text-align: center;
+  border: 1px solid #ffa94d;
+  animation: fadeIn 0.5s ease;
+}
+
+.first-time-banner p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #fff;
+}
+
+.first-time-banner button {
+  background-color: #4c2b00;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.first-time-banner button:hover {
+  background-color: #5a3a10;
+  transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* User Footer Styles */
@@ -156,4 +202,17 @@
   height: 1px;
   background-color: #e0e0e0;
   margin: 4px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-panel {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .first-time-banner {
+    margin: 10px;
+  }
 }

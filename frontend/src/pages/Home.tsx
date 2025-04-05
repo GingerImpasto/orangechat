@@ -4,29 +4,78 @@ import { useAuth } from "../context/AuthContext";
 import UserPanel from "../components/UserPanel";
 import React, { useState, useEffect } from "react";
 import MessageFeed from "../components/MessageFeed";
+import FindFriendsModal from "../components/FindFriendsModal"; // Add this import
 
 import { UserType, MessageType, FriendRequestType } from "../types";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [usersLoading, setUsersLoading] = useState(false);
+  const [friends, setFriends] = useState<UserType[]>([]); // Changed from users to friends
+  const [friendsLoading, setFriendsLoading] = useState(false); // Changed from usersLoading
   const [error, setError] = useState("");
   const { user } = useAuth();
 
+  // Add state for FindFriendsModal
+  const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<UserType[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
-  const [messages, setMessages] = useState<MessageType[]>([]); // Use the Message type
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
 
   const [pendingRequests, setPendingRequests] = useState<FriendRequestType[]>(
     []
   );
   const [requestsLoading, setRequestsLoading] = useState(false);
 
-  //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // Add search handler
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      try {
+        const response = await fetch(
+          `/home/searchUsers?query=${encodeURIComponent(query)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const results = await response.json();
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search failed:", error);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
 
-  const email = user?.email;
+  // Add friend handler
+  const handleAddFriend = async (userId: string) => {
+    try {
+      const response = await fetch("/friends/sendFriendRequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ receiverId: userId }),
+      });
+
+      if (!response.ok) throw new Error("Failed to send friend request");
+
+      // Refresh pending requests after adding
+      fetchPendingRequests();
+      // Optionally show success message
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      // Optionally show error message
+    }
+  };
 
   const handleUserClick = (user: UserType) => {
     setSelectedUser(user);
@@ -37,25 +86,36 @@ const Home: React.FC = () => {
     navigate("/login");
   };
 
-  const fetchUsers = async () => {
-    setUsersLoading(true);
+  const fetchFriends = async () => {
+    if (!user?.id) return;
+
+    setFriendsLoading(true);
     setError("");
 
     try {
-      // Call the /getOtherUsers endpoint
-      const response = await fetch(`/home/getOtherUsers?email=${email}`);
+      const response = await fetch(`/friends`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error("Failed to fetch friends");
       }
 
       const data = await response.json();
-      setUsers(data);
-      setSelectedUser(data[0]);
+      setFriends(data);
+      setIsFirstTimeUser(data.length === 0); // Set first-time flag
+
+      // Only auto-select if friends exist
+      if (data.length > 0 && !selectedUser) {
+        setSelectedUser(data[0]);
+      }
     } catch (err: any) {
-      setError(err.message || "An error occurred");
-      console.error(error);
+      setError(err.message || "An error occurred while fetching friends");
+      console.error(err);
     } finally {
-      setUsersLoading(false);
+      setFriendsLoading(false);
     }
   };
 
@@ -64,10 +124,9 @@ const Home: React.FC = () => {
 
     setRequestsLoading(true);
     try {
-      const response = await fetch(`/friends/getPendingRequests`, {
+      const response = await fetch(`/friends/pendingRequests`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Send the token
-          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -75,20 +134,19 @@ const Home: React.FC = () => {
         throw new Error("Failed to fetch pending requests");
       }
       const data = await response.json();
-      console.log("pending", data);
       setPendingRequests(data);
     } catch (err: any) {
       setError(err.message || "Failed to load pending requests");
-      console.error(err);
+      console.error(error);
     } finally {
       setRequestsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchFriends();
     fetchPendingRequests();
-  }, [email, user?.id]);
+  }, [user?.id]); // Removed email dependency since we're using token auth
 
   // Fetch messages when a user is selected
   useEffect(() => {
@@ -98,7 +156,7 @@ const Home: React.FC = () => {
       const basePath = "/home/getMessagesBetweenUsers";
       const params = new URLSearchParams({
         loggedInUserId: `${user.id}`,
-        selectedUserId: `${selectedUser.id}`, // Note: Values must be strings
+        selectedUserId: `${selectedUser.id}`,
       });
 
       const relativeUrl = `${basePath}?${params.toString()}`;
@@ -116,19 +174,16 @@ const Home: React.FC = () => {
     }
   }, [selectedUser, user]);
 
-  // Function to send a new message
   const handleSendMessage = async (formData: FormData) => {
     if (!selectedUser) return;
 
     const content = formData.get("content") as string;
 
-    let imageUrl: string | null = null;
-
     const newMessage = {
       senderId: user ? user.id : "",
       receiverId: selectedUser.id,
       content: content,
-      imageUrl: imageUrl,
+      imageUrl: null,
     };
 
     // Optimistically update the UI
@@ -140,11 +195,10 @@ const Home: React.FC = () => {
         createdAt: new Date().toISOString(),
         isRead: false,
         imageUrl: null,
-      }, // Add a temporary ID and timestamp
+      },
     ]);
 
     try {
-      // Send the new message to the backend
       const response = await fetch(`/home/sendMessage`, {
         method: "POST",
         body: formData,
@@ -154,7 +208,6 @@ const Home: React.FC = () => {
         throw new Error("Failed to send message");
       }
 
-      // Replace the optimistic message with the actual message from the backend
       const sentMessage = await response.json();
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
@@ -163,8 +216,6 @@ const Home: React.FC = () => {
       );
     } catch (error) {
       console.error("Error sending message:", error);
-
-      // Rollback the optimistic update if the request fails
       setMessages((prevMessages) =>
         prevMessages.filter((msg) => msg.id !== "temp-id")
       );
@@ -172,26 +223,37 @@ const Home: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="home-page">
-        <UserPanel
-          loggedUser={user}
-          users={users}
-          onLogout={logoutUser}
-          onUserClick={handleUserClick}
-          selectedUser={selectedUser}
-          usersLoading={usersLoading}
-          pendingRequests={pendingRequests}
-          requestsLoading={requestsLoading}
-        />
-        <MessageFeed
-          messages={messages}
-          selectedUser={selectedUser}
-          onSendMessage={handleSendMessage}
-          isLoading={messagesLoading}
-        />
-      </div>
-    </>
+    <div className="home-page">
+      <UserPanel
+        loggedUser={user}
+        users={friends}
+        onLogout={logoutUser}
+        onUserClick={handleUserClick}
+        selectedUser={selectedUser}
+        usersLoading={friendsLoading}
+        pendingRequests={pendingRequests}
+        requestsLoading={requestsLoading}
+        isFirstTimeUser={isFirstTimeUser}
+        onFindFriendsClick={() => setIsFindFriendsOpen(true)} // Add this prop
+      />
+      <MessageFeed
+        isLoading={friendsLoading || messagesLoading}
+        messages={messages}
+        selectedUser={selectedUser}
+        onSendMessage={handleSendMessage}
+        isFirstTimeUser={isFirstTimeUser}
+        onFindFriendsClick={() => setIsFindFriendsOpen(true)}
+      />
+
+      <FindFriendsModal
+        isOpen={isFindFriendsOpen}
+        onClose={() => setIsFindFriendsOpen(false)}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        onAddFriend={handleAddFriend}
+        searchQuery={searchQuery}
+      />
+    </div>
   );
 };
 

@@ -10,6 +10,8 @@ interface MessageFeedProps {
   messages: MessageType[];
   selectedUser: UserType | null;
   onSendMessage: (formData: FormData) => Promise<void>; // Callback to handle sending messages
+  isFirstTimeUser: boolean;
+  onFindFriendsClick: () => void;
 }
 
 const MessageFeed: React.FC<MessageFeedProps> = ({
@@ -17,6 +19,8 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   messages,
   selectedUser,
   onSendMessage,
+  isFirstTimeUser,
+  onFindFriendsClick,
 }) => {
   const { user } = useAuth();
 
@@ -39,7 +43,21 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   const groupedMessages = groupMessagesByDate(messages);
 
-  if (!selectedUser || isLoading) {
+  if (isFirstTimeUser) {
+    return (
+      <div className="message-feed-top-container empty-state">
+        <div className="empty-state-content">
+          <h3>Welcome to Orange Chat!</h3>
+          <p>You don't have any friends yet. Get started by:</p>
+          <button onClick={onFindFriendsClick} className="find-friends-btn">
+            Finding Friends
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="message-feed-top-container">
         <MessageFeedSkeleton />
