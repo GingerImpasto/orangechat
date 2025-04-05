@@ -7,9 +7,11 @@ import { v4 as uuidv4 } from "uuid";
 const router = express.Router();
 
 // Send a friend request
-router.post("/requests", authenticateToken, async (req, res) => {
+router.post("/sendFriendRequest", authenticateToken, async (req, res) => {
   const { receiverId } = req.body;
   const senderId = req.user?.id; // From auth middleware
+
+  console.log("Sending a friend request", senderId, receiverId);
 
   if (!receiverId) {
     res.status(400).json({ error: "Receiver ID is required" });
@@ -69,27 +71,57 @@ router.post("/requests", authenticateToken, async (req, res) => {
   }
 });
 
-// Get friend requests (both sent and received)
-router.get("/requests", authenticateToken, async (req, res) => {
+router.get("/getPendingRequests", authenticateToken, async (req, res) => {
   const userId = req.user?.id;
+  if (!userId) res.status(401).json({ error: "Unauthorized" });
 
   try {
-    const { data: requests, error } = await supabase
+    // 1. First get pending requests where current user is receiver
+    const { data: requests, error: requestsError } = await supabase
       .from("friend_requests")
-      .select("*, sender:users(*), receiver:users(*)")
-      .or(`senderId.eq.${userId},receiverId.eq.${userId}`)
-      .neq("status", "rejected");
+      .select("id, senderId, receiverId, status, createdAt, respondedAt")
+      .eq("receiverId", userId)
+      .eq("status", "pending")
+      .order("createdAt", { ascending: false });
 
-    if (error) throw error;
-    if (!requests) throw new Error("No requests returned");
+    if (requestsError) throw requestsError;
+    if (!requests?.length) res.json([]);
 
-    res.json({
-      sent: requests.filter((request) => request.senderId === userId),
-      received: requests.filter((request) => request.receiverId === userId),
+    // 2. Get all sender user IDs from the requests
+    const senderIds = requests.map((r) => r.senderId);
+
+    // 3. Fetch all sender user data in one query
+    const { data: senders, error: usersError } = await supabase
+      .from("users")
+      .select("id, firstName, lastName, email, profileImageUrl")
+      .in("id", senderIds);
+
+    if (usersError) throw usersError;
+
+    // 4. Combine the data
+    const formattedRequests = requests.map((request) => {
+      const sender = senders?.find((u) => u.id === request.senderId);
+      return {
+        ...request,
+        respondedAt: request.respondedAt || null,
+        sender: sender
+          ? {
+              id: sender.id,
+              firstName: sender.firstName,
+              lastName: sender.lastName,
+              email: sender.email,
+              ...(sender.profileImageUrl && {
+                profileImageUrl: sender.profileImageUrl,
+              }),
+            }
+          : null,
+      };
     });
+
+    res.json(formattedRequests);
   } catch (error) {
-    console.error("Error fetching friend requests:", error);
-    res.status(500).json({ error: "Failed to fetch friend requests" });
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to fetch requests" });
   }
 });
 

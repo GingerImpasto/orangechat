@@ -26,3 +26,31 @@ export type MessageType = {
   createdAt?: string; // Optional field for timestamp
   imageUrl?: string | null;
 };
+
+export type FriendRequestStatus = "pending" | "accepted" | "rejected";
+
+export interface FriendRequestType {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+  respondedAt?: string | null;
+
+  // These fields would be populated via Supabase joins
+  sender: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+    email: string;
+  };
+
+  receiver?: {
+    // Optional since you might not always need this
+    id: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl?: string;
+  };
+}

@@ -5,7 +5,7 @@ import UserPanel from "../components/UserPanel";
 import React, { useState, useEffect } from "react";
 import MessageFeed from "../components/MessageFeed";
 
-import { UserType, MessageType } from "../types";
+import { UserType, MessageType, FriendRequestType } from "../types";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +18,12 @@ const Home: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [messages, setMessages] = useState<MessageType[]>([]); // Use the Message type
   const [messagesLoading, setMessagesLoading] = useState(false);
+
+  const [pendingRequests, setPendingRequests] = useState<FriendRequestType[]>(
+    []
+  );
+  const [requestsLoading, setRequestsLoading] = useState(false);
+
   //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const email = user?.email;
@@ -30,6 +36,7 @@ const Home: React.FC = () => {
     logout();
     navigate("/login");
   };
+
   const fetchUsers = async () => {
     setUsersLoading(true);
     setError("");
@@ -52,9 +59,36 @@ const Home: React.FC = () => {
     }
   };
 
+  const fetchPendingRequests = async () => {
+    if (!user?.id) return;
+
+    setRequestsLoading(true);
+    try {
+      const response = await fetch(`/friends/getPendingRequests`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Send the token
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch pending requests");
+      }
+      const data = await response.json();
+      console.log("pending", data);
+      setPendingRequests(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load pending requests");
+      console.error(err);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
-  }, [email]);
+    fetchPendingRequests();
+  }, [email, user?.id]);
 
   // Fetch messages when a user is selected
   useEffect(() => {
@@ -147,6 +181,8 @@ const Home: React.FC = () => {
           onUserClick={handleUserClick}
           selectedUser={selectedUser}
           usersLoading={usersLoading}
+          pendingRequests={pendingRequests}
+          requestsLoading={requestsLoading}
         />
         <MessageFeed
           messages={messages}

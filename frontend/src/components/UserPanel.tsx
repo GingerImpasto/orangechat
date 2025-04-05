@@ -4,12 +4,14 @@ import UserElement from "./UserElement";
 import ProfileModal from "./ProfileModal";
 import UserPanelSkeleton from "./UserPanelSkeleton";
 import FindFriendsModal from "./FindFriendsModal";
-import { UserType } from "../types";
+import FriendRequestsModal from "./FriendRequestsModal";
+import { UserType, FriendRequestType } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
   faSignOutAlt,
   faUserPlus,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 import { stringToColor, getInitials } from "../utils/imageDisplay";
@@ -21,6 +23,8 @@ interface UserPanelProps {
   onUserClick: (user: UserType) => void;
   selectedUser: UserType | null;
   usersLoading: boolean;
+  pendingRequests?: FriendRequestType[];
+  requestsLoading: boolean;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -30,17 +34,19 @@ const UserPanel: React.FC<UserPanelProps> = ({
   onUserClick,
   selectedUser,
   loggedUser,
+  pendingRequests = [],
+  requestsLoading,
 }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [isFindFriendsOpen, setIsFindFriendsOpen] = useState(false);
+  const [isRequestsOpen, setIsRequestsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<UserType[]>([]);
   const popupRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Random background color for initials
   const backgroundColor = stringToColor(user ? user.firstName : "");
 
   const handleProfileClick = () => {
@@ -48,16 +54,17 @@ const UserPanel: React.FC<UserPanelProps> = ({
     setPopupOpen(false);
   };
 
-  const handleCloseProfileModal = () => {
-    setProfileModalOpen(false);
-  };
-
   const handleFindFriendsClick = () => {
     setIsFindFriendsOpen(true);
     setPopupOpen(false);
   };
 
-  const handleCloseFindFriends = () => {
+  const handleFriendRequestsClick = () => {
+    setIsRequestsOpen(true);
+    setPopupOpen(false);
+  };
+
+  const handleCloseModals = () => {
     setIsFindFriendsOpen(false);
     setSearchQuery("");
     setSearchResults([]);
@@ -66,30 +73,48 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.trim()) {
-      // Replace with your actual API call to search users
-      const response = await fetch(
-        `/home/searchUsers?query=${encodeURIComponent(query)}`
-      );
-      const results = await response.json();
-      setSearchResults(results);
+      try {
+        const response = await fetch(
+          `/home/searchUsers?query=${encodeURIComponent(query)}`
+        );
+        const results = await response.json();
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search failed:", error);
+      }
     } else {
       setSearchResults([]);
     }
   };
 
+  const onAcceptRequest = () => {};
+  const onRefreshRequests = () => {};
+  const onRejectRequest = () => {};
+
   const handleAddFriend = async (userId: string) => {
-    // Replace with your actual API call to add friend
-    await fetch("/home/addFriend", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ friendId: userId }),
-    });
-    // Optionally update UI or show success message
+    console.log("Inside handle add friend");
+    try {
+      const response = await fetch("/friends/sendFriendRequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // or your auth token
+        },
+        body: JSON.stringify({ receiverId: userId }),
+      });
+      onRefreshRequests?.();
+
+      if (!response.ok) {
+        throw new Error("Failed to send friend request");
+      }
+
+      // Handle success (maybe update UI or show notification)
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      // Handle error (show error message to user)
+    }
   };
 
-  // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -108,7 +133,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
     };
   }, []);
 
-  if (usersLoading) {
+  if (usersLoading || requestsLoading) {
     return (
       <div className="user-panel">
         <UserPanelSkeleton />
@@ -118,7 +143,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   return (
     <div className="user-panel">
-      {/* User List */}
       <div className="user-list">
         {users.length > 0 ? (
           users.map((user) => (
@@ -134,41 +158,30 @@ const UserPanel: React.FC<UserPanelProps> = ({
         )}
       </div>
 
-      {/* Footer with User Profile */}
-      <div
-        className="user-footer"
-        ref={footerRef}
-        onClick={() => setPopupOpen(!isPopupOpen)}
-      >
-        {user?.profileImageUrl ? (
-          <img
-            src={user.profileImageUrl}
-            alt={`${user.firstName} ${user.lastName}`}
-            className="profile-picture"
-          />
-        ) : (
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              marginRight: "12px",
-              color: "#fff",
-            }}
-          >
-            {getInitials(user ? user.firstName : "", user ? user.lastName : "")}
-          </div>
-        )}
-        <span className="username">
-          {user?.firstName} {user?.lastName}
-        </span>
+      <div className="user-footer" ref={footerRef}>
+        <div className="user-info" onClick={() => setPopupOpen(!isPopupOpen)}>
+          {user?.profileImageUrl ? (
+            <img
+              src={user.profileImageUrl}
+              alt={`${user.firstName} ${user.lastName}`}
+              className="profile-picture"
+            />
+          ) : (
+            <div className="initials-avatar" style={{ backgroundColor }}>
+              {getInitials(user?.firstName || "", user?.lastName || "")}
+            </div>
+          )}
+          <span className="username">
+            {user?.firstName} {user?.lastName}
+            {pendingRequests.length > 0 && (
+              <span className="friend-request-badge">
+                {pendingRequests.length}
+              </span>
+            )}
+          </span>
+        </div>
       </div>
 
-      {/* Profile Popup */}
       {isPopupOpen && (
         <div className="popup" ref={popupRef}>
           <div className="popup-item" onClick={handleProfileClick}>
@@ -179,6 +192,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
             <FontAwesomeIcon icon={faUserPlus} className="popup-icon" />
             <span>Find Friends</span>
           </div>
+          {pendingRequests.length > 0 && (
+            <div className="popup-item" onClick={handleFriendRequestsClick}>
+              <FontAwesomeIcon icon={faBell} className="popup-icon" />
+              <span>View Pending Requests ({pendingRequests.length})</span>
+            </div>
+          )}
           <div className="popup-divider" />
           <div className="popup-item" onClick={onLogout}>
             <FontAwesomeIcon icon={faSignOutAlt} className="popup-icon" />
@@ -187,22 +206,28 @@ const UserPanel: React.FC<UserPanelProps> = ({
         </div>
       )}
 
-      {/* Profile Modal */}
-      {isProfileModalOpen && (
-        <ProfileModal
-          onClose={handleCloseProfileModal}
-          loggedUser={loggedUser}
-        />
-      )}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        loggedUser={loggedUser}
+      />
 
-      {/* Find Friends Modal */}
       <FindFriendsModal
         isOpen={isFindFriendsOpen}
-        onClose={handleCloseFindFriends}
+        onClose={handleCloseModals}
         onSearch={handleSearch}
         searchResults={searchResults}
         onAddFriend={handleAddFriend}
         searchQuery={searchQuery}
+      />
+
+      <FriendRequestsModal
+        isOpen={isRequestsOpen}
+        requests={pendingRequests}
+        onClose={() => setIsRequestsOpen(false)}
+        onAccept={onAcceptRequest || (() => {})}
+        onReject={onRejectRequest || (() => {})}
+        onRefresh={onRefreshRequests}
       />
     </div>
   );

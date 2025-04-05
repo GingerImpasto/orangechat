@@ -8,11 +8,16 @@ import { stringToColor, getInitials } from "../utils/imageDisplay";
 import { useNavigate } from "react-router";
 
 interface ProfileModalProps {
+  isOpen: boolean;
   loggedUser: UserType | null;
   onClose: () => void;
 }
 
-const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
+const ProfileModal: React.FC<ProfileModalProps> = ({
+  isOpen,
+  onClose,
+  loggedUser,
+}) => {
   const { setUser, token, logout } = useAuth();
 
   const [firstName, setFirstName] = useState(
@@ -136,6 +141,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, loggedUser }) => {
     } finally {
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="profile-modal-overlay">
