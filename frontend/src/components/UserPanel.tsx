@@ -40,7 +40,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
   isFirstTimeUser,
   onFindFriendsClick,
 }) => {
-  console.log("Pending requests in user panel is ... ", pendingRequests);
   const [isPopupOpen, setPopupOpen] = useState(false);
   const [isProfileModalOpen, setProfileModalOpen] = useState(false);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);

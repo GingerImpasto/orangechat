@@ -29,7 +29,7 @@
   },
   "scripts": {
     "start": "node dist/bundle.js",
-    "dev": "ts-node-dev ./src/server.ts",
-    "build": "esbuild src/server.ts --bundle --platform=node --outfile=dist/bundle.js --minify"
+    "dev": "ts-node-dev ./src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/bundle.js --minify"
   }
 }
