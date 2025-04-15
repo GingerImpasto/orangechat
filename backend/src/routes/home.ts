@@ -8,6 +8,8 @@ import {
   deleteStorageFiles,
   deleteUserMessages,
   deleteUserRecord,
+  deleteUserFriendRequests,
+  deleteUserFriends,
 } from "../users";
 import {
   fetchMessagesBetweenUsers,
@@ -194,7 +196,13 @@ router.delete("/:userId", async (req, res) => {
     // 4. Delete all user messages
     await deleteUserMessages(userId);
 
-    // 5. Delete user record
+    // 5. Delete friend requests
+    await deleteUserFriendRequests(userId);
+
+    // 6. Delete friends entries
+    await deleteUserFriends(userId);
+
+    // 7. Delete user record
     await deleteUserRecord(userId);
 
     res

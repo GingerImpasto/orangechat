@@ -183,3 +183,31 @@ export async function deleteUserRecord(userId: string): Promise<void> {
 
   if (error) throw new Error(`Failed to delete user record: ${error.message}`);
 }
+
+/**
+ * Deletes all friend requests where the user is either sender or receiver
+ * @param userId The ID of the user to delete requests for
+ */
+export async function deleteUserFriendRequests(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("friend_requests")
+    .delete()
+    .or(`senderId.eq.${userId},receiverId.eq.${userId}`);
+
+  if (error)
+    throw new Error(`Failed to delete friend requests: ${error.message}`);
+}
+
+/**
+ * Deletes all friends entries where the user is either userId or friendId
+ * @param userId The ID of the user to delete friends entries for
+ */
+export async function deleteUserFriends(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("friends")
+    .delete()
+    .or(`userId.eq.${userId},friendId.eq.${userId}`);
+
+  if (error)
+    throw new Error(`Failed to delete friends entries: ${error.message}`);
+}
