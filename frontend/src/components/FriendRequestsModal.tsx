@@ -31,6 +31,16 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
 
   const pendingCount = requests.length;
 
+  const handleAccept = (id: string) => {
+    onAccept(id);
+    onClose();
+  };
+
+  const handleReject = (id: string) => {
+    onReject(id);
+    onClose();
+  };
+
   return (
     <div className="modal-overlay">
       <div className="" />
@@ -79,14 +89,14 @@ const FriendRequestsModal: React.FC<FriendRequestsModalProps> = ({
                     <div className="action-buttons">
                       <button
                         className="accept-button"
-                        onClick={() => onAccept(request.id)}
+                        onClick={() => handleAccept(request.id)}
                         title="Accept"
                       >
                         <FontAwesomeIcon icon={faUserPlus} />
                       </button>
                       <button
                         className="reject-button"
-                        onClick={() => onReject(request.id)}
+                        onClick={() => handleReject(request.id)}
                         title="Reject"
                       >
                         <FontAwesomeIcon icon={faUserXmark} />

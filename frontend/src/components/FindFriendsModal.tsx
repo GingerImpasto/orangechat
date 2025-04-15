@@ -22,8 +22,6 @@ const FindFriendsModal: React.FC<FindFriendsModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  console.log("search results", searchResults);
-
   return (
     <div className="modal-overlay">
       <div className="find-friends-modal">
