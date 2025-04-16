@@ -298,6 +298,7 @@ router.get("/pendingRequests", authenticateToken, (async (req, res) => {
     res.status(500).json({ error: "Failed to fetch pending requests" });
   }
 }) as AsyncRequestHandler);
+
 // Get friends list
 router.get("/", authenticateToken, (async (req, res) => {
   const userId = req.user?.id;

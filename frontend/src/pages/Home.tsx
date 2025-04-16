@@ -31,23 +31,35 @@ const Home: React.FC = () => {
   );
   const [requestsLoading, setRequestsLoading] = useState(false);
 
-  // Add search handler
+  // Search handler
+  // This function will be called when the user types in the search input
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
+
+    if (!user?.email) return; // Make sure we have the current user's email
+
     if (query.trim()) {
       try {
         const response = await fetch(
-          `/home/searchUsers?query=${encodeURIComponent(query)}`,
+          `/home/searchUsers?query=${encodeURIComponent(
+            query
+          )}&currentUserEmail=${encodeURIComponent(user.email)}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
         );
+
+        if (!response.ok) {
+          throw new Error("Search failed");
+        }
+
         const results = await response.json();
         setSearchResults(results);
       } catch (error) {
         console.error("Search failed:", error);
+        setSearchResults([]);
       }
     } else {
       setSearchResults([]);

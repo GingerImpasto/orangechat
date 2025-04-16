@@ -56,8 +56,12 @@ router.get("/getOtherUsers", async (req: any, res: any) => {
 
 router.get("/searchUsers", async (req, res) => {
   try {
-    const { query, email } = req.query;
-    const users = await searchUsers(query as string, email as string);
+    const { query, currentUserEmail } = req.query;
+    const users = await searchUsers(
+      query as string,
+      currentUserEmail as string
+    );
+
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });

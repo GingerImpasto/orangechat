@@ -65,7 +65,41 @@ export const searchUsers = async (query: string, currentUserEmail: string) => {
       throw error;
     }
 
-    return users || [];
+    // Get the current user's ID
+    const currentUser = await fetchUser(currentUserEmail);
+
+    if (!currentUser) return [];
+
+    // Check friendship status for each user
+    const usersWithStatus = await Promise.all(
+      users.map(async (user) => {
+        // Check friend_requests table for any existing requests
+        const { data: friendRequest, error: requestError } = await supabase
+          .from("friend_requests")
+          .select("*")
+          .or(
+            `and(senderId.eq.${currentUser.id},receiverId.eq.${user.id}),and(senderId.eq.${user.id},receiverId.eq.${currentUser.id})`
+          )
+          .maybeSingle();
+
+        if (requestError) {
+          console.error("Error checking friend request:", requestError);
+          return { ...user, friendshipStatus: "none" };
+        }
+
+        if (!friendRequest) {
+          return { ...user, friendshipStatus: "none" };
+        }
+
+        return {
+          ...user,
+          friendshipStatus: friendRequest.status || "none",
+        };
+      })
+    );
+
+    // Return the users with their friendship status
+    return usersWithStatus || [];
   } catch (error) {
     console.error("Error in searchUsers:", error);
     throw error;
