@@ -11,7 +11,7 @@
 /* Container for the entire message feed */
 .message-feed {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   flex: 1;
   gap: 12px;
   padding: 20px;

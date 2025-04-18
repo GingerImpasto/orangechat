@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"; // Add useRef and useEffect
+import React, { useRef } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
@@ -23,40 +23,17 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   onFindFriendsClick,
 }) => {
   const { user } = useAuth();
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Create a ref for the messages container
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const groupMessagesByDate = (messages: MessageType[]) => {
-    const groupedMessages: { [key: string]: MessageType[] } = {};
-
-    messages.forEach((message) => {
-      if (!message.createdAt) return;
-
-      const date = new Date(message.createdAt).toLocaleDateString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-
-      if (!groupedMessages[date]) {
-        groupedMessages[date] = [];
-      }
-      groupedMessages[date].push(message);
+  const formatMessageDate = (dateString: string | undefined) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
-
-    return groupedMessages;
   };
-
-  const groupedMessages = groupMessagesByDate(messages);
 
   if (isFirstTimeUser) {
     return (
@@ -83,18 +60,25 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     );
   }
 
+  // Create a reversed copy of the messages array
+  const reversedMessages = [...messages].reverse();
+
   return (
     <div className="message-feed-top-container">
       <div className="message-feed">
-        {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
-          <React.Fragment key={date}>
-            <div className="date-separator">
-              <span>{date}</span>
-            </div>
+        {reversedMessages.map((message, index) => {
+          const currentDate = formatMessageDate(message.createdAt);
+          const nextDate =
+            index < reversedMessages.length - 1
+              ? formatMessageDate(reversedMessages[index + 1].createdAt)
+              : "";
 
-            {messagesForDate.map((message) => (
+          // Show separator if this is the first message of a new date group
+          const showDateSeparator = currentDate && currentDate !== nextDate;
+
+          return (
+            <React.Fragment key={message.id}>
               <div
-                key={message.id}
                 className={`message-container ${
                   message.senderId === user?.id
                     ? "message-right"
@@ -126,10 +110,15 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
                   )}
                 </div>
               </div>
-            ))}
-          </React.Fragment>
-        ))}
-        <div ref={messagesEndRef} /> {/* This is the anchor for scrolling */}
+              {showDateSeparator && (
+                <div className="date-separator">
+                  <span>{currentDate}</span>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+        <div ref={messagesEndRef} />
       </div>
 
       <MessageForm
