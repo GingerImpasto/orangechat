@@ -3,8 +3,10 @@ interface FormFieldProps {
   label: string;
   type?: string;
   value: any;
-  onChange: (...args: any) => any;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  placeholder?: string;
+  required?: boolean;
 }
 
 function FormField({
@@ -12,25 +14,35 @@ function FormField({
   label,
   type = "text",
   value,
-  onChange = () => {},
+  onChange,
   error = "",
+  placeholder,
+  required = false,
 }: FormFieldProps) {
   return (
-    <>
-      <label className="login-label" htmlFor={htmlFor}>
-        {label}
-      </label>
+    <div className={`form-field ${error ? "error" : ""}`}>
+      <div className="label-container">
+        <label className="form-label" htmlFor={htmlFor}>
+          {label}
+        </label>
+        {required && <span className="required-indicator">*</span>}
+      </div>
       <input
-        onChange={(e) => {
-          onChange(e);
-        }}
+        id={htmlFor}
         type={type}
         value={value}
-        id={htmlFor}
-        className="login-input"
+        onChange={onChange}
+        className={`form-input ${error ? "input-error" : ""}`}
+        placeholder={placeholder}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${htmlFor}-error` : undefined}
       />
-      {error && <div className="login-error">{error}</div>}
-    </>
+      {error && (
+        <div id={`${htmlFor}-error`} className="error-message">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { UserType, MessageType } from "../types"; // Assuming you have a types file
+import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
@@ -9,7 +9,7 @@ interface MessageFeedProps {
   isLoading: boolean;
   messages: MessageType[];
   selectedUser: UserType | null;
-  onSendMessage: (formData: FormData) => Promise<void>; // Callback to handle sending messages
+  onSendMessage: (formData: FormData) => Promise<void>;
   isFirstTimeUser: boolean;
   onFindFriendsClick: () => void;
 }
@@ -24,14 +24,19 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
 
-  // Helper function to group messages by date
   const groupMessagesByDate = (messages: MessageType[]) => {
     const groupedMessages: { [key: string]: MessageType[] } = {};
 
     messages.forEach((message) => {
       if (!message.createdAt) return;
 
-      const date = new Date(message.createdAt).toDateString(); // Get the date string (e.g., "Mon Oct 02 2023")
+      const date = new Date(message.createdAt).toLocaleDateString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+
       if (!groupedMessages[date]) {
         groupedMessages[date] = [];
       }
@@ -48,9 +53,12 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
       <div className="message-feed-top-container empty-state">
         <div className="empty-state-content">
           <h3>Welcome to Orange Chat!</h3>
-          <p>You don't have any friends yet. Get started by:</p>
+          <p>
+            Start your journey by connecting with friends. Find people you know
+            or discover new connections.
+          </p>
           <button onClick={onFindFriendsClick} className="find-friends-btn">
-            Finding Friends
+            Find Friends
           </button>
         </div>
       </div>
@@ -70,12 +78,10 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
       <div className="message-feed">
         {Object.entries(groupedMessages).map(([date, messagesForDate]) => (
           <React.Fragment key={date}>
-            {/* Date separator */}
             <div className="date-separator">
               <span>{date}</span>
             </div>
 
-            {/* Messages for this date */}
             {messagesForDate.map((message) => (
               <div
                 key={message.id}
@@ -102,7 +108,10 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
                   <p className="message-content">{message.content}</p>
                   {message.createdAt && (
                     <span className="message-timestamp">
-                      {new Date(message.createdAt).toLocaleTimeString()}
+                      {new Date(message.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   )}
                 </div>
@@ -116,7 +125,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
         onSendMessage={onSendMessage}
         selectedUser={selectedUser}
         loggedUser={user}
-      ></MessageForm>
+      />
     </div>
   );
 };

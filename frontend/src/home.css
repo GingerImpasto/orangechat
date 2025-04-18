@@ -156,12 +156,6 @@
   background-color: #3d8b40;
 }
 
-.no-results {
-  padding: 1rem;
-  text-align: center;
-  color: #666;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .home-page {

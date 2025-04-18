@@ -37,7 +37,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   loggedUser,
   pendingRequests = [],
   requestsLoading,
-  isFirstTimeUser,
+  //isFirstTimeUser,
   onFindFriendsClick,
 }) => {
   const [isPopupOpen, setPopupOpen] = useState(false);
@@ -154,12 +154,17 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   return (
     <div className="user-panel">
-      {isFirstTimeUser && (
+      {/*isFirstTimeUser && (
         <div className="first-time-banner">
           <p>Start by adding friends!</p>
           <button onClick={onFindFriendsClick}>Find Friends</button>
         </div>
-      )}
+      )*/}
+
+      <div className="user-panel-header">
+        <img src="orange.svg" alt="OrangeChat Logo" className="app-logo" />
+        <h1 className="app-name">OrangeChat</h1>
+      </div>
 
       <div className="user-list">
         {users.length > 0 ? (
@@ -172,7 +177,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
             />
           ))
         ) : (
-          <div className="no-results">No users available</div>
+          <div className="no-results">No friends yet. Find some!</div>
         )}
       </div>
 

@@ -2,13 +2,42 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 250px;
+  width: 300px;
   background-color: #c35214;
   border: #444;
   color: #fff;
   padding: 16px;
   box-sizing: border-box;
   position: relative;
+}
+
+/* No Results Message */
+.no-results {
+  padding: 24px 0;
+  text-align: center;
+  color: #fff;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.user-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: #c35214;
+}
+
+.app-logo {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+}
+
+.app-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: greenyellow;
+  margin: 0;
 }
 
 .user-list {

@@ -12,7 +12,7 @@ import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import "../styles/MessageForm.css";
 
 interface MessageFormProps {
-  onSendMessage: (formData: FormData) => Promise<void>; // Callback to handle sending messages
+  onSendMessage: (formData: FormData) => Promise<void>;
   selectedUser: UserType | null;
   loggedUser: UserType | null;
 }
@@ -22,29 +22,23 @@ const MessageForm: React.FC<MessageFormProps> = ({
   selectedUser,
   loggedUser,
 }) => {
-  const [newMessage, setNewMessage] = useState<string>(""); // State for the new message input
+  const [newMessage, setNewMessage] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
-  // Handle clicks outside the emoji picker
+  // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         emojiPickerRef.current &&
         !emojiPickerRef.current.contains(event.target as Node)
       ) {
-        setShowEmojiPicker(false); // Close the emoji picker
+        setShowEmojiPicker(false);
       }
     };
-
-    // Attach the event listener
     document.addEventListener("mousedown", handleClickOutside);
-
-    // Cleanup the event listener
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,16 +51,18 @@ const MessageForm: React.FC<MessageFormProps> = ({
   };
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    setNewMessage((prevMessage) => prevMessage + emojiData.emoji); // Append the selected emoji to the message
-    setShowEmojiPicker(false); // Close the emoji picker after selection
+    setNewMessage((prevMessage) => prevMessage + emojiData.emoji);
+    setShowEmojiPicker(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newMessage.trim() && !image) return; // Prevent empty submissions
+
     const formData = new FormData();
     formData.append("content", newMessage);
-    formData.append("senderId", loggedUser ? loggedUser.id : "");
-    formData.append("receiverId", selectedUser ? selectedUser.id : "");
+    formData.append("senderId", loggedUser?.id || "");
+    formData.append("receiverId", selectedUser?.id || "");
 
     if (image) {
       formData.append("image", image);
@@ -75,6 +71,16 @@ const MessageForm: React.FC<MessageFormProps> = ({
     await onSendMessage(formData);
     setNewMessage("");
     setImage(null);
+  };
+
+  // Prevent form submission on Enter key (only allow new lines)
+  const handleTextareaKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevents form submission
+    }
+    // Shift+Enter will add a new line (default behavior)
   };
 
   return (
@@ -104,7 +110,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
       {image && (
         <div className="image-feedback">
           <img
-            src={URL.createObjectURL(image)} // Create a URL for the selected image
+            src={URL.createObjectURL(image)}
             alt="Selected"
             className="image-preview"
           />
@@ -113,12 +119,13 @@ const MessageForm: React.FC<MessageFormProps> = ({
           </button>
         </div>
       )}
-      <input
-        type="text"
+      <textarea
         id="message-input"
         placeholder="Type a message..."
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
+        onKeyDown={handleTextareaKeyDown} // Ensures Enter adds new lines
+        rows={1}
       />
       <button type="submit" className="send-button">
         <FontAwesomeIcon icon={faPaperPlane} />

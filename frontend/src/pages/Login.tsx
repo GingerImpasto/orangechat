@@ -17,18 +17,15 @@ interface FormData {
 }
 
 function Login() {
-  const [action, setAction] = useState("login");
+  const [action, setAction] = useState<"login" | "register">("login");
   const [isLoading, setIsLoading] = useState(false);
-
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
     firstName: "",
     lastName: "",
   });
-
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  //const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const navigate = useNavigate();
   const { token, login } = useAuth();
@@ -42,7 +39,6 @@ function Login() {
       [field]: event.target.value,
     }));
 
-    // Validate the field and update errors
     let error: string | undefined;
     switch (field) {
       case "email":
@@ -61,14 +57,12 @@ function Login() {
         break;
     }
 
-    // Update the errors state
     setErrors({
       ...errors,
       [field]: error,
     });
   };
 
-  // Check if the form is valid before submission
   const isFormValid = (): boolean => {
     if (action === "login") {
       return (
@@ -89,9 +83,6 @@ function Login() {
     setIsLoading(true);
 
     if (isFormValid()) {
-      // Form is valid, proceed with submission
-      // Add your submission logic here
-
       try {
         const response = await fetch(
           `/login/submit-${action === "login" ? "login" : "signup"}-form`,
@@ -111,67 +102,77 @@ function Login() {
           login(result.token, result.user);
           navigate("/");
         } else {
-          // Handle bad request (e.g., user already exists)
-          console.error(result.error);
-
           setErrors({
             ...errors,
             ["email"]: result.error,
           });
-
-          return { success: false, message: result.error };
         }
       } catch (error) {
-        console.log("has error");
         console.error("Error:", error);
       } finally {
         setIsLoading(false);
       }
-    } else {
-      // Form is invalid, show error messages
-      console.error("Form is invalid");
     }
   };
 
-  useEffect(() => {}, [errors]); // This effect runs whenever `errors` changes
+  useEffect(() => {}, [errors]);
 
   const buttonText: string = isLoading
-    ? "Logging in..."
+    ? action === "login"
+      ? "Logging in..."
+      : "Creating account..."
     : action === "login"
     ? "Sign In"
-    : "Create account";
+    : "Sign Up";
 
-  // Redirect to home if already logged in
   if (token) {
     return <Navigate to="/" />;
   }
 
   return (
-    <>
-      <div className="login-page">
-        <button
-          className="login-toggle-button"
-          onClick={() => setAction(action === "login" ? "register" : "login")}
-        >
-          {action === "login" ? "Sign up" : "Login"}
-        </button>
-        <h2 className="login-whisperchat-welcome">Welcome to Orange Chat</h2>
-        <h3 className="login-whisperchat-subtext">
-          {action === "login"
-            ? "Login to chat with friends!"
-            : "Create an account to connect with friends!"}
-        </h3>
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <h1 className="login-title">Orange Chat</h1>
+          <p className="login-subtitle">
+            {action === "login" ? "Sign in to continue" : "Create your account"}
+          </p>
+        </div>
+
         <form className="login-form" onSubmit={handleSubmit}>
+          {action === "register" && (
+            <div className="name-fields">
+              <FormField
+                htmlFor="firstName"
+                label="First Name"
+                type="text"
+                value={formData.firstName}
+                onChange={(e) => handleInputChange(e, "firstName")}
+                error={errors.firstName}
+                placeholder="Enter your first name"
+              />
+              <FormField
+                htmlFor="lastName"
+                label="Last Name"
+                type="text"
+                value={formData.lastName}
+                onChange={(e) => handleInputChange(e, "lastName")}
+                error={errors.lastName}
+                placeholder="Enter your last name"
+              />
+            </div>
+          )}
+
           <FormField
             htmlFor="email"
             label="Email"
-            type="text"
+            type="email"
             value={formData.email}
-            onChange={(e) => {
-              handleInputChange(e, "email");
-            }}
+            onChange={(e) => handleInputChange(e, "email")}
             error={errors.email}
+            placeholder="Enter your email"
           />
+
           <FormField
             htmlFor="password"
             label="Password"
@@ -179,44 +180,36 @@ function Login() {
             value={formData.password}
             onChange={(e) => handleInputChange(e, "password")}
             error={errors.password}
+            placeholder="Enter your password"
           />
-          {action !== "login" ? (
-            <>
-              <FormField
-                htmlFor="firstName"
-                label="First name"
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => {
-                  handleInputChange(e, "firstName");
-                }}
-                error={errors.firstName}
-              />
-              <FormField
-                htmlFor="lastName"
-                label="Last Name"
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => {
-                  handleInputChange(e, "lastName");
-                }}
-                error={errors.lastName}
-              />
-            </>
-          ) : (
-            ""
-          )}
 
           <button
             type="submit"
-            className="login-submit-button"
+            className={`login-button ${isLoading ? "loading" : ""}`}
             disabled={!isFormValid() || isLoading}
           >
             {buttonText}
           </button>
         </form>
+
+        <div className="login-footer">
+          <p>
+            {action === "login"
+              ? "Don't have an account?"
+              : "Already have an account?"}
+            <button
+              type="button"
+              className="login-toggle-button"
+              onClick={() =>
+                setAction(action === "login" ? "register" : "login")
+              }
+            >
+              {action === "login" ? "Sign up" : "Sign in"}
+            </button>
+          </p>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

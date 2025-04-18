@@ -214,15 +214,6 @@
   font-size: 14px;
 }
 
-/* No Results Message */
-.no-results {
-  padding: 24px 0;
-  text-align: center;
-  color: #6c757d;
-  font-style: italic;
-  font-size: 0.95rem;
-}
-
 /* Animation when modal opens */
 @keyframes slideUp {
   from {
