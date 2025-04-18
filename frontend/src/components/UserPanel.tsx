@@ -165,7 +165,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <img src="orange.svg" alt="OrangeChat Logo" className="app-logo" />
         <h1 className="app-name">OrangeChat</h1>
       </div>
-
+      <div className="friends-header">Friends</div>
       <div className="user-list">
         {users.length > 0 ? (
           users.map((user) => (
@@ -177,7 +177,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
             />
           ))
         ) : (
-          <div className="no-results">No friends yet. Find some!</div>
+          <div className="no-results">
+            It’s quiet here… ⏳ Invite some friends to join the fun! 🚀
+          </div>
         )}
       </div>
 

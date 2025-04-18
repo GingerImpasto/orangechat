@@ -14,7 +14,6 @@
 /* No Results Message */
 .no-results {
   padding: 24px 0;
-  text-align: center;
   color: #fff;
   font-style: italic;
   font-size: 0.95rem;
@@ -28,16 +27,24 @@
 }
 
 .app-logo {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   margin-right: 10px;
 }
 
 .app-name {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: greenyellow;
   margin: 0;
+}
+
+.friends-header {
+  margin-top: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: greenyellow;
+  margin-bottom: 5px;
 }
 
 .user-list {

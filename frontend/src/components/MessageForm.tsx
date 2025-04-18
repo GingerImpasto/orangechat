@@ -73,12 +73,13 @@ const MessageForm: React.FC<MessageFormProps> = ({
     setImage(null);
   };
 
-  // Prevent form submission on Enter key (only allow new lines)
+  // Handle Enter key for submission and Shift+Enter for new lines
   const handleTextareaKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // Prevents form submission
+      e.preventDefault(); // Prevents new line
+      handleSubmit(e); // Triggers form submission
     }
     // Shift+Enter will add a new line (default behavior)
   };
@@ -124,7 +125,7 @@ const MessageForm: React.FC<MessageFormProps> = ({
         placeholder="Type a message..."
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
-        onKeyDown={handleTextareaKeyDown} // Ensures Enter adds new lines
+        onKeyDown={handleTextareaKeyDown}
         rows={1}
       />
       <button type="submit" className="send-button">

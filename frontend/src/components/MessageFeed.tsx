@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react"; // Add useRef and useEffect
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
@@ -23,6 +23,16 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   onFindFriendsClick,
 }) => {
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Create a ref for the messages container
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const groupMessagesByDate = (messages: MessageType[]) => {
     const groupedMessages: { [key: string]: MessageType[] } = {};
@@ -119,6 +129,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
             ))}
           </React.Fragment>
         ))}
+        <div ref={messagesEndRef} /> {/* This is the anchor for scrolling */}
       </div>
 
       <MessageForm
