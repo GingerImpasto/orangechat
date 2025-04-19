@@ -8,6 +8,7 @@
   background-color: #ff7b00;
   background-image: url("./assets/anime-oranges.webp");
   background-repeat: repeat;
+  background-size: cover;
   font-family: "Courier New", Courier, monospace;
 }
 
