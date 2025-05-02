@@ -27,7 +27,7 @@
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "start": "node dist/bundle.js",
+    "start": "NODE_ENV=production node dist/bundle.js",
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/bundle.js --minify",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   }

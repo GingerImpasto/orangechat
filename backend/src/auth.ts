@@ -11,7 +11,7 @@ interface JwtPayload {
   [key: string]: any;
 }
 
-console.log("Environment:", process.env.NODE_ENVIRONMENT);
+console.log("Environment:", process.env.NODE_ENV);
 const JWT_SECRET: string = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
 
 declare module "express" {

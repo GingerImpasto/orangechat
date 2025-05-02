@@ -10,25 +10,35 @@ import path from "path";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Serve the frontend's dist files
-app.use(express.static(path.join(__dirname, "../frontend-dist")));
-
 // Middleware
-// Configure CORS
-app.use(cors());
+// Configure CORS to accept requests from frontend in development
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? undefined // Use default CORS in production
+        : "http://localhost:5173", // Allow Vite dev server
+    credentials: true,
+  })
+);
 app.use(bodyParser.json());
-
 app.use(express.json());
 app.use(cookieParser());
 
+// API routes
 app.use("/login", loginRoutes);
 app.use("/home", homeRoutes);
 app.use("/friends", friendsRoutes);
 
-// Fallback to index.html for client-side routing
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend-dist", "index.html"));
-});
+// Serve frontend in production only
+if (process.env.NODE_ENV === "production") {
+  // Serve static files
+  app.use(express.static(path.join(__dirname, "../frontend-dist")));
+  // Fallback to index.html for client-side routing
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend-dist", "index.html"));
+  });
+}
 
 // Start the server
 app.listen(PORT, () => {
