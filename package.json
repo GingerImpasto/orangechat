@@ -9,5 +9,9 @@
     "move": "npm run clean:frontend-dist && npm run copy:frontend",
     "copy:frontend": "cp -r frontend/dist backend/frontend-dist",
     "clean:frontend-dist": "rm -rf backend/frontend-dist"
+  },
+  "dependencies": {
+    "@types/socket.io": "^3.0.1",
+    "socket.io": "^4.8.1"
   }
 }
