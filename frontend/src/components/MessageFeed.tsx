@@ -3,6 +3,7 @@ import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
+import io from "socket.io-client";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
@@ -24,6 +25,33 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Create WebSocket connection
+  const socket = useRef(
+    io("http://localhost:5000", {
+      transports: ["polling"], // or ["websocket", "polling"]
+      auth: { token: localStorage.getItem("token") }, // If using authentication tokens
+      transportOptions: {
+        polling: {
+          extraHeaders: {
+            "my-custom-header": "header-value",
+          },
+        },
+      },
+    })
+  ).current;
+
+  // Add WebSocket test handler
+  const handleWebSocketTest = () => {
+    if (user) {
+      const testMessage = {
+        content: "Test message via WebSocket",
+        senderId: user.id,
+        createdAt: new Date().toISOString(),
+      };
+      socket.emit("message", testMessage);
+    }
+  };
 
   const formatMessageDate = (dateString: string | undefined) => {
     if (!dateString) return "";
@@ -65,6 +93,11 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
+      {/* Add WebSocket test button */}
+      <button className="websocket-test-btn" onClick={handleWebSocketTest}>
+        Send Test WS Message
+      </button>
+
       <div className="message-feed">
         {reversedMessages.map((message, index) => {
           const currentDate = formatMessageDate(message.createdAt);
