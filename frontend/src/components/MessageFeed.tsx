@@ -1,9 +1,9 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
-import io from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
@@ -25,35 +25,65 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const token = localStorage.getItem("token");
 
-  // Create WebSocket connection
-  const socket = useRef(
-    io("http://localhost:5000", {
-      transports: ["polling"], // or ["websocket", "polling"]
-      auth: { token: localStorage.getItem("token") }, // If using authentication tokens
+  // WebSocket connection management
+  useEffect(() => {
+    if (!token) return;
+
+    const newSocket = io("http://localhost:5000", {
+      transports: ["websocket", "polling"],
+      auth: { token },
       transportOptions: {
         polling: {
           extraHeaders: {
-            "my-custom-header": "header-value",
+            Authorization: `Bearer ${token}`,
+            "X-Custom-Header": "chat-client-v1",
           },
         },
       },
-    })
-  ).current;
+    });
 
-  // Add WebSocket test handler
+    socketRef.current = newSocket;
+
+    // Socket event handlers
+    const handleConnect = () => console.log("WebSocket connected");
+    const handleDisconnect = () => console.log("WebSocket disconnected");
+    const handleError = (err: Error) => console.error("WebSocket error:", err);
+    const handleIncomingMessage = (message: MessageType) => {
+      console.log("New message received:", message);
+      // Implement state update logic here if needed
+    };
+
+    newSocket.on("connect", handleConnect);
+    newSocket.on("disconnect", handleDisconnect);
+    newSocket.on("error", handleError);
+    newSocket.on("message", handleIncomingMessage);
+
+    // Cleanup function
+    return () => {
+      newSocket.off("connect", handleConnect);
+      newSocket.off("disconnect", handleDisconnect);
+      newSocket.off("error", handleError);
+      newSocket.off("message", handleIncomingMessage);
+      newSocket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token]);
+
   const handleWebSocketTest = () => {
-    if (user) {
+    if (user && socketRef.current?.connected) {
       const testMessage = {
-        content: "Test message via WebSocket",
+        content: "WebSocket connection test successful 🚀",
         senderId: user.id,
         createdAt: new Date().toISOString(),
       };
-      socket.emit("message", testMessage);
+      socketRef.current.emit("message", testMessage);
     }
   };
 
-  const formatMessageDate = (dateString: string | undefined) => {
+  const formatMessageDate = (dateString?: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
@@ -88,26 +118,26 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     );
   }
 
-  // Create a reversed copy of the messages array
   const reversedMessages = [...messages].reverse();
 
   return (
     <div className="message-feed-top-container">
-      {/* Add WebSocket test button */}
-      <button className="websocket-test-btn" onClick={handleWebSocketTest}>
-        Send Test WS Message
+      <button
+        className="websocket-test-btn"
+        onClick={handleWebSocketTest}
+        aria-label="Test WebSocket connection"
+      >
+        Test WS Connection
       </button>
 
       <div className="message-feed">
         {reversedMessages.map((message, index) => {
           const currentDate = formatMessageDate(message.createdAt);
-          const nextDate =
-            index < reversedMessages.length - 1
-              ? formatMessageDate(reversedMessages[index + 1].createdAt)
-              : "";
+          const nextDate = reversedMessages[index + 1]?.createdAt
+            ? formatMessageDate(reversedMessages[index + 1].createdAt)
+            : "";
 
-          // Show separator if this is the first message of a new date group
-          const showDateSeparator = currentDate && currentDate !== nextDate;
+          const showDateSeparator = currentDate !== nextDate;
 
           return (
             <React.Fragment key={message.id}>
@@ -128,8 +158,9 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
                   {message.imageUrl && (
                     <img
                       src={message.imageUrl}
-                      alt="message content"
+                      alt="Message content"
                       className="message-image"
+                      loading="lazy"
                     />
                   )}
                   <p className="message-content">{message.content}</p>
