@@ -1,23 +1,31 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import { AuthProvider } from "./context/AuthContext.tsx";
-import App from "./App.tsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketContext";
+import App from "./App";
 import "./index.css";
-import Login from "./pages/Login.tsx";
-import ProtectedRoute from "./routes/ProtectedRoute.tsx";
+import Login from "./pages/Login";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<App />} />
+            <Route
+              path="/"
+              element={
+                <SocketProvider>
+                  <App />
+                </SocketProvider>
+              }
+            />
           </Route>
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>
 );

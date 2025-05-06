@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../context/SocketContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
-import { io, Socket } from "socket.io-client";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
@@ -25,63 +25,23 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const token = localStorage.getItem("token");
+  const { socket, isConnected, testConnection } = useSocket(); // Use the socket context
 
-  // WebSocket connection management
+  // Handle incoming messages if needed
   useEffect(() => {
-    if (!token) return;
+    if (!socket) return;
 
-    const newSocket = io("http://localhost:5000", {
-      transports: ["websocket", "polling"],
-      auth: { token },
-      transportOptions: {
-        polling: {
-          extraHeaders: {
-            Authorization: `Bearer ${token}`,
-            "X-Custom-Header": "chat-client-v1",
-          },
-        },
-      },
-    });
-
-    socketRef.current = newSocket;
-
-    // Socket event handlers
-    const handleConnect = () => console.log("WebSocket connected");
-    const handleDisconnect = () => console.log("WebSocket disconnected");
-    const handleError = (err: Error) => console.error("WebSocket error:", err);
     const handleIncomingMessage = (message: MessageType) => {
       console.log("New message received:", message);
       // Implement state update logic here if needed
     };
 
-    newSocket.on("connect", handleConnect);
-    newSocket.on("disconnect", handleDisconnect);
-    newSocket.on("error", handleError);
-    newSocket.on("message", handleIncomingMessage);
+    socket.on("message", handleIncomingMessage);
 
-    // Cleanup function
     return () => {
-      newSocket.off("connect", handleConnect);
-      newSocket.off("disconnect", handleDisconnect);
-      newSocket.off("error", handleError);
-      newSocket.off("message", handleIncomingMessage);
-      newSocket.disconnect();
-      socketRef.current = null;
+      socket.off("message", handleIncomingMessage);
     };
-  }, [token]);
-
-  const handleWebSocketTest = () => {
-    if (user && socketRef.current?.connected) {
-      const testMessage = {
-        content: "WebSocket connection test successful 🚀",
-        senderId: user.id,
-        createdAt: new Date().toISOString(),
-      };
-      socketRef.current.emit("message", testMessage);
-    }
-  };
+  }, [socket]);
 
   const formatMessageDate = (dateString?: string) => {
     if (!dateString) return "";
@@ -124,8 +84,9 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     <div className="message-feed-top-container">
       <button
         className="websocket-test-btn"
-        onClick={handleWebSocketTest}
+        onClick={testConnection} // Use the testConnection from context
         aria-label="Test WebSocket connection"
+        disabled={!isConnected}
       >
         Test WS Connection
       </button>
