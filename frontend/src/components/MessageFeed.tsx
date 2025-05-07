@@ -25,23 +25,22 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 }) => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { socket, isConnected, testConnection } = useSocket(); // Use the socket context
+  const {
+    isConnected,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+    sendPrivateMessage,
+  } = useSocket(); // Use the socket context
 
-  // Handle incoming messages if needed
   useEffect(() => {
-    if (!socket) return;
-
-    const handleIncomingMessage = (message: MessageType) => {
+    const handleNewMessage = (message: MessageType) => {
+      // Handle incoming message (add to state, etc.)
       console.log("New message received:", message);
-      // Implement state update logic here if needed
     };
 
-    socket.on("message", handleIncomingMessage);
-
-    return () => {
-      socket.off("message", handleIncomingMessage);
-    };
-  }, [socket]);
+    subscribeToMessages(handleNewMessage);
+    return () => unsubscribeFromMessages();
+  }, [subscribeToMessages, unsubscribeFromMessages]);
 
   const formatMessageDate = (dateString?: string) => {
     if (!dateString) return "";
@@ -84,11 +83,20 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     <div className="message-feed-top-container">
       <button
         className="websocket-test-btn"
-        onClick={testConnection} // Use the testConnection from context
-        aria-label="Test WebSocket connection"
-        disabled={!isConnected}
+        onClick={() => {
+          if (selectedUser && user) {
+            sendPrivateMessage({
+              content: "Hello from WebSocket!",
+              senderId: user.id,
+              receiverId: selectedUser.id,
+              isRead: false,
+              createdAt: new Date().toISOString(),
+            });
+          }
+        }}
+        disabled={!isConnected || !selectedUser}
       >
-        Test WS Connection
+        Send Test Message
       </button>
 
       <div className="message-feed">

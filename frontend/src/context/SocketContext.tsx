@@ -4,19 +4,25 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { MessageType } from "../types";
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  testConnection: () => void;
+  sendPrivateMessage: (message: Omit<MessageType, "id">) => void;
+  subscribeToMessages: (callback: (message: MessageType) => void) => void;
+  unsubscribeFromMessages: () => void;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
-  testConnection: () => {},
+  sendPrivateMessage: () => {},
+  subscribeToMessages: () => {},
+  unsubscribeFromMessages: () => {},
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -25,17 +31,19 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [shouldConnect, setShouldConnect] = useState(false);
+  const messageCallbackRef = useRef<((message: MessageType) => void) | null>(
+    null
+  );
 
   // Watch for token changes
   useEffect(() => {
     const token = localStorage.getItem("token");
     setShouldConnect(!!token);
-  }, []); // Empty dependency array to run only once on mount
+  }, []);
 
   // Handle connection logic
   useEffect(() => {
     if (!shouldConnect) {
-      // Clean up if we shouldn't be connected
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -47,7 +55,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Only create new socket if one doesn't exist or previous one was disconnected
     if (!socketRef.current || socketRef.current.disconnected) {
       const newSocket = io("http://localhost:5000", {
         transports: ["websocket", "polling"],
@@ -65,8 +72,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         reconnectionDelay: 1000,
       });
 
-      socketRef.current = newSocket;
-
       const handleConnect = () => {
         setIsConnected(true);
         console.log("WebSocket connected");
@@ -77,25 +82,35 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log("WebSocket disconnected");
       };
 
+      const handlePrivateMessage = (message: MessageType) => {
+        if (messageCallbackRef.current) {
+          messageCallbackRef.current(message);
+        }
+      };
+
       newSocket.on("connect", handleConnect);
       newSocket.on("disconnect", handleDisconnect);
+      newSocket.on("private-message", handlePrivateMessage);
       newSocket.on("connect_error", (err) => {
         console.error("Connection error:", err);
         setIsConnected(false);
       });
 
+      socketRef.current = newSocket;
+
       return () => {
         newSocket.off("connect", handleConnect);
         newSocket.off("disconnect", handleDisconnect);
+        newSocket.off("private-message", handlePrivateMessage);
         newSocket.off("connect_error");
         if (newSocket.connected) {
           newSocket.disconnect();
         }
       };
     }
-  }, [shouldConnect]); // Re-run when shouldConnect changes
+  }, [shouldConnect]);
 
-  // Listen for storage events (for token changes from other tabs)
+  // Listen for storage events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token") {
@@ -107,21 +122,35 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const testConnection = () => {
+  const sendPrivateMessage = useCallback((message: Omit<MessageType, "id">) => {
     if (socketRef.current?.connected) {
-      const testMessage = {
-        content: "WebSocket connection test successful 🚀",
-        senderId: "system",
+      socketRef.current.emit("private-message", {
+        ...message,
         createdAt: new Date().toISOString(),
-      };
-      socketRef.current.emit("message", testMessage);
+      });
+    } else {
+      console.error("Cannot send message - WebSocket not connected");
+      throw new Error("WebSocket not connected");
     }
-  };
+  }, []);
+
+  const subscribeToMessages = useCallback(
+    (callback: (message: MessageType) => void) => {
+      messageCallbackRef.current = callback;
+    },
+    []
+  );
+
+  const unsubscribeFromMessages = useCallback(() => {
+    messageCallbackRef.current = null;
+  }, []);
 
   const value = {
     socket: socketRef.current,
     isConnected,
-    testConnection,
+    sendPrivateMessage,
+    subscribeToMessages,
+    unsubscribeFromMessages,
   };
 
   return (

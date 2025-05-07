@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
 // Define your JWT payload type
-interface JwtPayload {
+export interface JwtPayload {
   id: string;
   email: string;
   [key: string]: any;
