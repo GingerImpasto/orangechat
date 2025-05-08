@@ -8,17 +8,29 @@ interface UserSocketMap {
   [userId: string]: string;
 }
 
-// Interface for private message data
-interface PrivateMessageData {
-  content: string;
-  receiverId: string;
-  createdAt: string;
-}
-
 // Interface for connection status message
 interface ConnectionStatus {
   status: string;
   message: string;
+}
+
+// Interface for call offer
+interface CallOffer {
+  callerId: string;
+  calleeId: string;
+  offer: RTCSessionDescriptionInit;
+}
+
+// Interface for call answer
+interface CallAnswer {
+  callerId: string;
+  answer: RTCSessionDescriptionInit;
+}
+
+// Interface for ICE candidate exchange
+interface IceCandidate {
+  candidate: RTCIceCandidate;
+  targetUserId: string;
 }
 
 const activeUsers: UserSocketMap = {};
@@ -36,7 +48,7 @@ export const initWebSocket = (server: http.Server) => {
     pingInterval: 25000,
   });
 
-  // Socket.io middleware for authentication
+  // Socket.io middleware for authentication (unchanged)
   io.use((socket: Socket, next: (err?: Error) => void) => {
     const token = socket.handshake.auth.token;
 
@@ -58,7 +70,6 @@ export const initWebSocket = (server: http.Server) => {
           );
         }
 
-        // Type guard to ensure decoded is JwtPayload
         const isJwtPayload = (decoded: unknown): decoded is JwtPayload => {
           return (
             typeof decoded === "object" && decoded !== null && "id" in decoded
@@ -94,39 +105,110 @@ export const initWebSocket = (server: http.Server) => {
     };
     socket.emit("connection-status", connectionStatus);
 
-    // Private message handler
-    socket.on("private-message", async (data: PrivateMessageData) => {
+    // Handle call initiation (offer)
+    socket.on("call-offer", (data: CallOffer) => {
       try {
-        // Validate message data
-        if (!data.content || !data.receiverId) {
-          return socket.emit("message-error", "Invalid message format");
+        const { calleeId, offer } = data;
+
+        if (!calleeId || !offer) {
+          return socket.emit("call-error", "Invalid call offer format");
         }
 
-        // Construct full message object
-        const message = {
-          content: data.content,
-          senderId: userId,
-          receiverId: data.receiverId,
-          createdAt: data.createdAt || new Date().toISOString(),
-          status: "delivered",
-        };
+        const calleeSocketId = activeUsers[calleeId];
 
-        // Here you would typically save to database
-        // await saveMessageToDatabase(message);
-
-        // Find recipient's socket ID
-        const recipientSocketId = activeUsers[data.receiverId];
-
-        if (recipientSocketId) {
-          // Send to recipient
-          io.to(recipientSocketId).emit("private-message", message);
+        if (calleeSocketId) {
+          io.to(calleeSocketId).emit("call-offer", {
+            callerId: userId,
+            offer,
+          });
+        } else {
+          socket.emit("call-error", "Recipient not available");
         }
-
-        // Send confirmation to sender
-        socket.emit("private-message", message);
       } catch (error) {
-        console.error("Message handling error:", error);
-        socket.emit("message-error", "Failed to send message");
+        console.error("Call offer error:", error);
+        socket.emit("call-error", "Failed to initiate call");
+      }
+    });
+
+    // Handle call answer
+    socket.on("call-answer", (data: CallAnswer) => {
+      try {
+        const { callerId, answer } = data;
+
+        if (!callerId || !answer) {
+          return socket.emit("call-error", "Invalid call answer format");
+        }
+
+        const callerSocketId = activeUsers[callerId];
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit("call-answer", {
+            calleeId: userId,
+            answer,
+          });
+        } else {
+          socket.emit("call-error", "Caller no longer available");
+        }
+      } catch (error) {
+        console.error("Call answer error:", error);
+        socket.emit("call-error", "Failed to answer call");
+      }
+    });
+
+    // Handle ICE candidate exchange
+    socket.on("ice-candidate", (data: IceCandidate) => {
+      try {
+        const { candidate, targetUserId } = data;
+
+        if (!candidate || !targetUserId) {
+          return socket.emit("call-error", "Invalid ICE candidate format");
+        }
+
+        const targetSocketId = activeUsers[targetUserId];
+
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("ice-candidate", {
+            senderId: userId,
+            candidate,
+          });
+        }
+      } catch (error) {
+        console.error("ICE candidate error:", error);
+        socket.emit("call-error", "Failed to send ICE candidate");
+      }
+    });
+
+    // Handle call rejection
+    socket.on("call-reject", (callerId: string) => {
+      try {
+        if (!callerId) return;
+
+        const callerSocketId = activeUsers[callerId];
+
+        if (callerSocketId) {
+          io.to(callerSocketId).emit("call-rejected", {
+            calleeId: userId,
+          });
+        }
+      } catch (error) {
+        console.error("Call rejection error:", error);
+      }
+    });
+
+    // Handle call end
+    socket.on("call-end", (targetUserId: string) => {
+      try {
+        if (!targetUserId) return;
+
+        const targetSocketId = activeUsers[targetUserId];
+
+        if (targetSocketId) {
+          io.to(targetSocketId).emit("call-ended", {
+            userId: userId,
+          });
+        }
+      } catch (error) {
+        console.error("Call end error:", error);
       }
     });
 
@@ -134,6 +216,9 @@ export const initWebSocket = (server: http.Server) => {
     socket.on("disconnect", () => {
       delete activeUsers[userId];
       console.log(`User ${userId} disconnected`);
+
+      // Notify all users that this user is no longer available for calls
+      socket.broadcast.emit("user-disconnected", userId);
     });
 
     // Error handling
@@ -145,5 +230,5 @@ export const initWebSocket = (server: http.Server) => {
   return io;
 };
 
-// Optional: Export type interfaces if needed elsewhere
-export type { PrivateMessageData, ConnectionStatus };
+// Export types for client-side use
+export type { CallOffer, CallAnswer, IceCandidate, ConnectionStatus };

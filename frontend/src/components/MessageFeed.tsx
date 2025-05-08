@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
+import VideoCall from "./VideoCall";
 import "../MessageFeed.css";
 
 interface MessageFeedProps {
@@ -29,9 +30,18 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     isConnected,
     subscribeToMessages,
     unsubscribeFromMessages,
-    sendPrivateMessage,
-  } = useSocket(); // Use the socket context
+    subscribeToCallOffer,
+    unsubscribeFromCallEvents,
+  } = useSocket();
 
+  const [inCall, setInCall] = useState(false);
+  const [isIncomingCall, setIsIncomingCall] = useState(false);
+  const [callerInfo, setCallerInfo] = useState<{
+    callerId: string;
+    offer: RTCSessionDescriptionInit;
+  } | null>(null);
+
+  // Handle incoming messages
   useEffect(() => {
     const handleNewMessage = (message: MessageType) => {
       // Handle incoming message (add to state, etc.)
@@ -42,6 +52,25 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     return () => unsubscribeFromMessages();
   }, [subscribeToMessages, unsubscribeFromMessages]);
 
+  // Handle incoming calls
+  useEffect(() => {
+    const handleCallOffer = (data: {
+      callerId: string;
+      offer: RTCSessionDescriptionInit;
+    }) => {
+      if (selectedUser?.id === data.callerId) {
+        setCallerInfo(data);
+        setIsIncomingCall(true);
+      }
+    };
+
+    subscribeToCallOffer(handleCallOffer);
+
+    return () => {
+      unsubscribeFromCallEvents();
+    };
+  }, [selectedUser, subscribeToCallOffer, unsubscribeFromCallEvents]);
+
   const formatMessageDate = (dateString?: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -50,6 +79,27 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleStartCall = async () => {
+    if (!selectedUser || !user) return;
+    setInCall(true); // The VideoCall component will handle offer creation and emission
+  };
+
+  const handleEndCall = () => {
+    setInCall(false);
+  };
+
+  const handleAcceptCall = () => {
+    setInCall(true);
+    setIsIncomingCall(false);
+  };
+
+  const handleRejectCall = () => {
+    setIsIncomingCall(false);
+    setCallerInfo(null);
+    // You might want to emit a call-reject event here
+    // Would need to use the rejectVideoCall method from SocketContext
   };
 
   if (isFirstTimeUser) {
@@ -81,24 +131,46 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
-      <button
-        className="websocket-test-btn"
-        onClick={() => {
-          if (selectedUser && user) {
-            sendPrivateMessage({
-              content: "Hello from WebSocket!",
-              senderId: user.id,
-              receiverId: selectedUser.id,
-              isRead: false,
-              createdAt: new Date().toISOString(),
-            });
-          }
-        }}
-        disabled={!isConnected || !selectedUser}
-      >
-        Send Test Message
-      </button>
+      {/* Video Call UI */}
+      {inCall && selectedUser && (
+        <VideoCall
+          otherUserId={selectedUser.id}
+          onEndCall={handleEndCall}
+          isCaller={!isIncomingCall}
+          offer={isIncomingCall ? callerInfo?.offer : undefined}
+        />
+      )}
 
+      {/* Incoming Call Modal */}
+      {isIncomingCall && callerInfo && !inCall && (
+        <div className="incoming-call-modal">
+          <div className="incoming-call-content">
+            <h3>Incoming Video Call</h3>
+            <p>from {selectedUser?.firstName || "Unknown"}</p>
+            <div className="call-buttons">
+              <button onClick={handleAcceptCall} className="accept-call-btn">
+                Accept
+              </button>
+              <button onClick={handleRejectCall} className="reject-call-btn">
+                Decline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Call Button (only when not in call) */}
+      {selectedUser && !inCall && !isIncomingCall && (
+        <button
+          className="video-call-btn"
+          onClick={handleStartCall}
+          disabled={!isConnected || !selectedUser}
+        >
+          Start Video Call
+        </button>
+      )}
+
+      {/* Messages */}
       <div className="message-feed">
         {reversedMessages.map((message, index) => {
           const currentDate = formatMessageDate(message.createdAt);
