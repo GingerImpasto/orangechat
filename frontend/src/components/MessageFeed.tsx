@@ -1,11 +1,11 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useMemo } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import MessageForm from "./MessageForm";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
-import VideoCall from "./VideoCall";
-import "../MessageFeed.css";
+import VideoCallManager from "./VideoCallManager";
+import "../styles/MessageFeed.css";
 
 interface MessageFeedProps {
   isLoading: boolean;
@@ -25,43 +25,11 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   onFindFriendsClick,
 }) => {
   const { user } = useAuth();
+  const { isConnected } = useSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const {
-    isConnected,
-
-    subscribeToCallOffer,
-    unsubscribeFromCallEvents,
-  } = useSocket();
-
-  const [inCall, setInCall] = useState(false);
-  const [isIncomingCall, setIsIncomingCall] = useState(false);
-  const [callerInfo, setCallerInfo] = useState<{
-    callerId: string;
-    offer: RTCSessionDescriptionInit;
-  } | null>(null);
-  const [isStartingCall, setIsStartingCall] = useState(false); // New state for loading
 
   // Memoize reversed messages to avoid recalculating on every render
   const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
-
-  // Handle incoming calls
-  useEffect(() => {
-    const handleCallOffer = (data: {
-      callerId: string;
-      offer: RTCSessionDescriptionInit;
-    }) => {
-      if (selectedUser?.id === data.callerId) {
-        setCallerInfo(data);
-        setIsIncomingCall(true);
-      }
-    };
-
-    subscribeToCallOffer(handleCallOffer);
-
-    return () => {
-      unsubscribeFromCallEvents();
-    };
-  }, [selectedUser, subscribeToCallOffer, unsubscribeFromCallEvents]);
 
   const formatMessageDate = (dateString?: string) => {
     if (!dateString) return "";
@@ -71,30 +39,6 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
       month: "short",
       day: "numeric",
     });
-  };
-
-  const handleStartCall = async () => {
-    if (!selectedUser || !user) return;
-    setIsStartingCall(true); // Set loading state
-    try {
-      setInCall(true);
-    } finally {
-      setIsStartingCall(false);
-    }
-  };
-
-  const handleEndCall = () => {
-    setInCall(false);
-  };
-
-  const handleAcceptCall = () => {
-    setInCall(true);
-    setIsIncomingCall(false);
-  };
-
-  const handleRejectCall = () => {
-    setIsIncomingCall(false);
-    setCallerInfo(null);
   };
 
   if (isFirstTimeUser) {
@@ -124,65 +68,12 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
-      {/* Video Call UI */}
-      {inCall && selectedUser && (
-        <VideoCall
-          otherUserId={selectedUser.id}
-          onEndCall={handleEndCall}
-          isCaller={!isIncomingCall}
-          offer={isIncomingCall ? callerInfo?.offer : undefined}
-        />
-      )}
-
-      {/* Incoming Call Modal */}
-      {isIncomingCall && callerInfo && !inCall && (
-        <div className="incoming-call-modal">
-          <div className="incoming-call-content">
-            <h3>Incoming Video Call</h3>
-            <p>from {selectedUser?.firstName || "Unknown"}</p>
-            <div className="call-buttons">
-              <button onClick={handleAcceptCall} className="accept-call-btn">
-                Accept
-              </button>
-              <button onClick={handleRejectCall} className="reject-call-btn">
-                Decline
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Call Button (only when not in call) */}
-      {selectedUser && !inCall && !isIncomingCall && (
-        <button
-          className="video-call-btn"
-          onClick={handleStartCall}
-          disabled={!isConnected || !selectedUser || isStartingCall}
-          aria-label={
-            !isConnected
-              ? "Waiting for connection..."
-              : !selectedUser
-              ? "No user selected"
-              : "Start video call"
-          }
-          data-tooltip={
-            !isConnected
-              ? "Please wait for connection"
-              : !selectedUser
-              ? "Select a user to call"
-              : undefined
-          }
-        >
-          {isStartingCall ? (
-            <span className="call-loading">Starting...</span>
-          ) : (
-            <>
-              <span className="call-icon"></span>
-              Start Video Call
-            </>
-          )}
-        </button>
-      )}
+      {/* Video Call Manager handles all call-related UI and logic */}
+      <VideoCallManager
+        selectedUser={selectedUser}
+        isConnected={isConnected}
+        currentUserId={user?.id}
+      />
 
       {/* Messages */}
       <div className="message-feed">
