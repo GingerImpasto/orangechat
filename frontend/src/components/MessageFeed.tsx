@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
@@ -40,11 +40,14 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
     callerId: string;
     offer: RTCSessionDescriptionInit;
   } | null>(null);
+  const [isStartingCall, setIsStartingCall] = useState(false); // New state for loading
+
+  // Memoize reversed messages to avoid recalculating on every render
+  const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
 
   // Handle incoming messages
   useEffect(() => {
     const handleNewMessage = (message: MessageType) => {
-      // Handle incoming message (add to state, etc.)
       console.log("New message received:", message);
     };
 
@@ -83,7 +86,12 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   const handleStartCall = async () => {
     if (!selectedUser || !user) return;
-    setInCall(true); // The VideoCall component will handle offer creation and emission
+    setIsStartingCall(true); // Set loading state
+    try {
+      setInCall(true);
+    } finally {
+      setIsStartingCall(false);
+    }
   };
 
   const handleEndCall = () => {
@@ -98,8 +106,6 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   const handleRejectCall = () => {
     setIsIncomingCall(false);
     setCallerInfo(null);
-    // You might want to emit a call-reject event here
-    // Would need to use the rejectVideoCall method from SocketContext
   };
 
   if (isFirstTimeUser) {
@@ -126,8 +132,6 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
       </div>
     );
   }
-
-  const reversedMessages = [...messages].reverse();
 
   return (
     <div className="message-feed-top-container">
@@ -164,9 +168,30 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
         <button
           className="video-call-btn"
           onClick={handleStartCall}
-          disabled={!isConnected || !selectedUser}
+          disabled={!isConnected || !selectedUser || isStartingCall}
+          aria-label={
+            !isConnected
+              ? "Waiting for connection..."
+              : !selectedUser
+              ? "No user selected"
+              : "Start video call"
+          }
+          data-tooltip={
+            !isConnected
+              ? "Please wait for connection"
+              : !selectedUser
+              ? "Select a user to call"
+              : undefined
+          }
         >
-          Start Video Call
+          {isStartingCall ? (
+            <span className="call-loading">Starting...</span>
+          ) : (
+            <>
+              <span className="call-icon"></span>
+              Start Video Call
+            </>
+          )}
         </button>
       )}
 
