@@ -28,8 +28,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const {
     isConnected,
-    subscribeToMessages,
-    unsubscribeFromMessages,
+
     subscribeToCallOffer,
     unsubscribeFromCallEvents,
   } = useSocket();
@@ -44,16 +43,6 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   // Memoize reversed messages to avoid recalculating on every render
   const reversedMessages = useMemo(() => [...messages].reverse(), [messages]);
-
-  // Handle incoming messages
-  useEffect(() => {
-    const handleNewMessage = (message: MessageType) => {
-      console.log("New message received:", message);
-    };
-
-    subscribeToMessages(handleNewMessage);
-    return () => unsubscribeFromMessages();
-  }, [subscribeToMessages, unsubscribeFromMessages]);
 
   // Handle incoming calls
   useEffect(() => {
