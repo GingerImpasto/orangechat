@@ -7,44 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { io, Socket } from "socket.io-client";
-
-interface SocketContextType {
-  socket: Socket | null;
-  isConnected: boolean;
-  // Video call methods
-  emitCallOffer: (data: {
-    calleeId: string;
-    offer: RTCSessionDescriptionInit;
-  }) => Promise<void>;
-  answerVideoCall: (
-    callerId: string,
-    answer: RTCSessionDescriptionInit
-  ) => void;
-  sendICECandidate: (candidate: RTCIceCandidate, targetUserId: string) => void;
-  rejectVideoCall: (callerId: string) => void;
-  endVideoCall: (targetUserId: string) => void;
-  // Event subscriptions
-  subscribeToCallOffer: (
-    callback: (data: {
-      callerId: string;
-      offer: RTCSessionDescriptionInit;
-    }) => void
-  ) => void;
-  subscribeToCallAnswer: (
-    callback: (data: {
-      calleeId: string;
-      answer: RTCSessionDescriptionInit;
-    }) => void
-  ) => void;
-  subscribeToICECandidate: (
-    callback: (data: { senderId: string; candidate: RTCIceCandidate }) => void
-  ) => void;
-  subscribeToCallRejection: (
-    callback: (data: { calleeId: string }) => void
-  ) => void;
-  subscribeToCallEnd: (callback: (data: { userId: string }) => void) => void;
-  unsubscribeFromCallEvents: () => void;
-}
+import { SocketContextType } from "../types/socketTypes";
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
