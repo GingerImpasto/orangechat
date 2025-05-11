@@ -109,7 +109,6 @@ export const initWebSocket = (server: http.Server) => {
     socket.on("call-offer", (data: CallOffer) => {
       try {
         const { calleeId, offer } = data;
-
         if (!calleeId || !offer) {
           return socket.emit("call-error", "Invalid call offer format");
         }

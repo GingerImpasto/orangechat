@@ -23,6 +23,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
     offer: RTCSessionDescriptionInit;
   } | null>(null);
   const [isStartingCall, setIsStartingCall] = useState(false);
+  const [isUserCaller, setIsUserCaller] = useState(false);
 
   const { subscribeToCallOffer, unsubscribeFromCallEvents } = useSocket();
 
@@ -34,6 +35,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
       if (selectedUser?.id === data.callerId) {
         setCallerInfo(data);
         setIsIncomingCall(true);
+        setIsUserCaller(false);
       }
     };
 
@@ -47,8 +49,10 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
   const handleStartCall = async () => {
     if (!selectedUser || !currentUserId) return;
     setIsStartingCall(true);
+    setIsUserCaller(true);
     try {
       setInCall(true);
+      setIsIncomingCall(false); // Ensure no incoming call state is active
     } finally {
       setIsStartingCall(false);
     }
@@ -56,6 +60,8 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
 
   const handleEndCall = () => {
     setInCall(false);
+    setIsIncomingCall(false); // Reset incoming call state
+    setCallerInfo(null); // Clear caller info
   };
 
   const handleAcceptCall = () => {
@@ -74,8 +80,8 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
         <VideoCall
           otherUserId={selectedUser.id}
           onEndCall={handleEndCall}
-          isCaller={!isIncomingCall}
-          offer={isIncomingCall ? callerInfo?.offer : undefined}
+          isCaller={isUserCaller}
+          offer={!isUserCaller ? callerInfo?.offer : undefined}
         />
       )}
 
