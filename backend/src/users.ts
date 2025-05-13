@@ -120,6 +120,20 @@ export const fetchUser = async (email: string) => {
   return user;
 };
 
+export const fetchUserById = async (id: string) => {
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return user;
+};
+
 // Function to fetch users from Supabase, excluding the user with the given email
 export const getOtherUsers = async (email: string) => {
   try {

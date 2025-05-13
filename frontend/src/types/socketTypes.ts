@@ -1,7 +1,8 @@
 import { Socket } from "socket.io-client";
+import { UserType } from "../types";
 
 export interface CallOfferData {
-  callerId: string;
+  caller: UserType;
   offer: RTCSessionDescriptionInit;
 }
 

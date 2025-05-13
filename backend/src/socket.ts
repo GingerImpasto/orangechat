@@ -2,6 +2,7 @@ import { Server, Socket } from "socket.io";
 import http from "http";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "./auth";
+import { fetchUserById } from "./users";
 
 // Interface for tracking connected users
 interface UserSocketMap {
@@ -87,8 +88,10 @@ export const initWebSocket = (server: http.Server) => {
   });
 
   // WebSocket connection handler
-  io.on("connection", (socket: Socket) => {
+  io.on("connection", async (socket: Socket) => {
     const userId = socket.data.userId;
+    const user = await fetchUserById(userId);
+
     if (!userId) {
       console.log("Unauthorized connection attempt");
       return socket.disconnect();
@@ -117,7 +120,7 @@ export const initWebSocket = (server: http.Server) => {
 
         if (calleeSocketId) {
           io.to(calleeSocketId).emit("call-offer", {
-            callerId: userId,
+            caller: user,
             offer,
           });
         } else {

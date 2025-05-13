@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { SocketContextType } from "../types/socketTypes";
+import { UserType } from "../types";
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
@@ -35,7 +36,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   // Refs for callbacks
 
   const callOfferCallbackRef = useRef<
-    | ((data: { callerId: string; offer: RTCSessionDescriptionInit }) => void)
+    | ((data: { caller: UserType; offer: RTCSessionDescriptionInit }) => void)
     | null
   >(null);
   const callAnswerCallbackRef = useRef<
@@ -101,7 +102,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Call event handlers
       const handleCallOffer = (data: {
-        callerId: string;
+        caller: UserType;
         offer: RTCSessionDescriptionInit;
       }) => {
         callOfferCallbackRef.current?.(data);
@@ -239,7 +240,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const subscribeToCallOffer = useCallback(
     (
       callback: (data: {
-        callerId: string;
+        caller: UserType;
         offer: RTCSessionDescriptionInit;
       }) => void
     ) => {

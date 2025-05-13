@@ -19,7 +19,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
   const [inCall, setInCall] = useState(false);
   const [isIncomingCall, setIsIncomingCall] = useState(false);
   const [callerInfo, setCallerInfo] = useState<{
-    callerId: string;
+    caller: UserType;
     offer: RTCSessionDescriptionInit;
   } | null>(null);
   const [isStartingCall, setIsStartingCall] = useState(false);
@@ -29,7 +29,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
 
   useEffect(() => {
     const handleCallOffer = (data: {
-      callerId: string;
+      caller: UserType;
       offer: RTCSessionDescriptionInit;
     }) => {
       setCallerInfo(data);
@@ -77,7 +77,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
       {inCall && selectedUser && (
         <VideoCall
           otherUserId={
-            isUserCaller ? selectedUser.id : callerInfo?.callerId ?? ""
+            isUserCaller ? selectedUser.id : callerInfo?.caller.id ?? ""
           }
           onEndCall={handleEndCall}
           isCaller={isUserCaller}
@@ -89,7 +89,9 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
         <div className="incoming-call-modal">
           <div className="incoming-call-content">
             <h3>Incoming Video Call</h3>
-            <p>{callerInfo.callerId}</p>
+            <p>
+              {callerInfo.caller.firstName} {callerInfo.caller.lastName}
+            </p>
             <div className="call-buttons">
               <button onClick={handleAcceptCall} className="accept-call-btn">
                 Accept
