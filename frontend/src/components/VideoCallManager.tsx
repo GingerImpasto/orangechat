@@ -32,9 +32,11 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
       caller: UserType;
       offer: RTCSessionDescriptionInit;
     }) => {
-      setCallerInfo(data);
-      setIsIncomingCall(true);
-      setIsUserCaller(false);
+      if (!inCall) {
+        setCallerInfo(data);
+        setIsIncomingCall(true);
+        setIsUserCaller(false);
+      }
     };
 
     subscribeToCallOffer(handleCallOffer);
@@ -42,7 +44,7 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
     return () => {
       unsubscribeFromCallEvents();
     };
-  }, [subscribeToCallOffer, unsubscribeFromCallEvents]);
+  }, [subscribeToCallOffer, unsubscribeFromCallEvents, inCall]);
 
   const handleStartCall = async () => {
     if (!selectedUser || !currentUserId) return;
@@ -60,6 +62,8 @@ const VideoCallManager: React.FC<VideoCallManagerProps> = ({
     setInCall(false);
     setIsIncomingCall(false); // Reset incoming call state
     setCallerInfo(null); // Clear caller info
+    setIsUserCaller(false); // Reset user caller state
+    setIsStartingCall(false);
   };
 
   const handleAcceptCall = () => {
