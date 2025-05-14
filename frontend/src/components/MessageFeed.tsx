@@ -5,7 +5,6 @@ import { useSocket } from "../context/SocketContext";
 import MessageForm from "./MessageForm";
 import MessageHeader from "./MessageHeader";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
-import VideoCallManager from "./VideoCallManager";
 import "../styles/MessageFeed.css";
 
 interface MessageFeedProps {
@@ -69,10 +68,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
-      <MessageHeader selectedUser={selectedUser} />
-
-      {/* Video Call Manager handles all call-related UI and logic */}
-      <VideoCallManager
+      <MessageHeader
         selectedUser={selectedUser}
         isConnected={isConnected}
         currentUserId={user?.id}

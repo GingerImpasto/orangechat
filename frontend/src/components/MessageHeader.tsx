@@ -1,19 +1,19 @@
 import React from "react";
 import { UserType } from "../types";
-import { useSocket } from "../context/SocketContext";
 import "../styles/MessageHeader.css";
+import VideoCallManager from "./VideoCallManager";
 
 interface MessageHeaderProps {
   selectedUser: UserType | null;
-  onVideoCall?: () => void;
+  currentUserId?: string;
+  isConnected: boolean;
 }
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({
   selectedUser,
-  onVideoCall,
+  currentUserId,
+  isConnected,
 }) => {
-  const { isConnected } = useSocket();
-
   if (!selectedUser) return null;
 
   return (
@@ -36,19 +36,12 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
         </div>
       </div>
       <div className="message-header-actions">
-        <button className="video-call-button" onClick={onVideoCall}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path
-              fill="#FFF"
-              d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"
-            />
-          </svg>
-        </button>
+        {/* Video Call Manager handles all call-related UI and logic */}
+        <VideoCallManager
+          selectedUser={selectedUser}
+          isConnected={isConnected}
+          currentUserId={currentUserId}
+        />
       </div>
     </div>
   );
