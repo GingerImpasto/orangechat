@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import http from "http";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "./auth";
-import { fetchUserById } from "./users";
+import { fetchUserById, getFriendIds } from "./users";
 
 // Interface for tracking connected users
 interface UserSocketMap {
@@ -34,7 +34,43 @@ interface IceCandidate {
   targetUserId: string;
 }
 
+interface UserPresence {
+  userId: string;
+  isOnline: boolean;
+}
+
+interface PresenceCheck {
+  userId: string;
+}
+
 const activeUsers: UserSocketMap = {};
+
+function checkUserPresence(userId: string): UserPresence {
+  return {
+    userId,
+    isOnline: !!activeUsers[userId],
+  };
+}
+
+// Helper function to notify only friends
+function notifyFriendsPresence(
+  io: Server,
+  userId: string,
+  friendIds: string[],
+  isOnline: boolean
+) {
+  const presence: UserPresence = {
+    userId,
+    isOnline,
+  };
+
+  friendIds.forEach((friendId) => {
+    const friendSocketId = activeUsers[friendId];
+    if (friendSocketId) {
+      io.to(friendSocketId).emit("presence-update", presence);
+    }
+  });
+}
 
 export const initWebSocket = (server: http.Server) => {
   const io = new Server(server, {
@@ -91,6 +127,9 @@ export const initWebSocket = (server: http.Server) => {
   io.on("connection", async (socket: Socket) => {
     const userId = socket.data.userId;
     const user = await fetchUserById(userId);
+    const friendIds = await getFriendIds(userId);
+
+    socket.data.friendIds = friendIds;
 
     if (!userId) {
       console.log("Unauthorized connection attempt");
@@ -101,6 +140,9 @@ export const initWebSocket = (server: http.Server) => {
     activeUsers[userId] = socket.id;
     console.log(`User ${userId} connected with socket ${socket.id}`);
 
+    // Only notify this user's friends
+    notifyFriendsPresence(io, userId, friendIds, true);
+
     // Notify user about successful connection
     const connectionStatus: ConnectionStatus = {
       status: "connected",
@@ -108,6 +150,27 @@ export const initWebSocket = (server: http.Server) => {
     };
     socket.emit("connection-status", connectionStatus);
 
+    socket.on(
+      "check-presence",
+      (data: PresenceCheck, callback: (response: UserPresence) => void) => {
+        try {
+          const { userId } = data;
+
+          if (!userId) {
+            throw new Error("User ID is required");
+          }
+
+          const response = checkUserPresence(userId);
+          callback(response);
+        } catch (error) {
+          console.error("Presence check error:", error);
+          callback({
+            userId: data.userId,
+            isOnline: false,
+          });
+        }
+      }
+    );
     // Handle call initiation (offer)
     socket.on("call-offer", (data: CallOffer) => {
       try {
@@ -216,8 +279,13 @@ export const initWebSocket = (server: http.Server) => {
 
     // Handle disconnection
     socket.on("disconnect", () => {
-      delete activeUsers[userId];
-      console.log(`User ${userId} disconnected`);
+      if (activeUsers[userId]) {
+        delete activeUsers[userId];
+        console.log(`User ${userId} disconnected`);
+
+        // Only notify this user's friends
+        notifyFriendsPresence(io, userId, socket.data.friendIds, false);
+      }
 
       // Notify all users that this user is no longer available for calls
       socket.broadcast.emit("user-disconnected", userId);

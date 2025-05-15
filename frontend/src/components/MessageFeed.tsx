@@ -1,7 +1,6 @@
 import React, { useRef, useMemo } from "react";
 import { UserType, MessageType } from "../types";
 import { useAuth } from "../context/AuthContext";
-import { useSocket } from "../context/SocketContext";
 import MessageForm from "./MessageForm";
 import MessageHeader from "./MessageHeader";
 import MessageFeedSkeleton from "./MessageFeedSkeleton";
@@ -25,7 +24,6 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
   onFindFriendsClick,
 }) => {
   const { user } = useAuth();
-  const { isConnected } = useSocket();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Memoize reversed messages to avoid recalculating on every render
@@ -68,11 +66,7 @@ const MessageFeed: React.FC<MessageFeedProps> = ({
 
   return (
     <div className="message-feed-top-container">
-      <MessageHeader
-        selectedUser={selectedUser}
-        isConnected={isConnected}
-        currentUserId={user?.id}
-      />
+      <MessageHeader selectedUser={selectedUser} currentUserId={user?.id} />
 
       {/* Messages */}
       <div className="message-feed">

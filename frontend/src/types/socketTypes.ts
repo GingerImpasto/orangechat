@@ -30,6 +30,12 @@ export type ICECandidateCallback = (data: ICECandidateData) => void;
 export type CallRejectionCallback = (data: CallRejectionData) => void;
 export type CallEndCallback = (data: CallEndData) => void;
 
+export interface UserPresence {
+  userId: string;
+  isOnline: boolean;
+  lastSeen?: Date;
+}
+
 export interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
@@ -50,4 +56,12 @@ export interface SocketContextType {
   subscribeToCallRejection: (callback: CallRejectionCallback) => void;
   subscribeToCallEnd: (callback: CallEndCallback) => void;
   unsubscribeFromCallEvents: () => void;
+  checkPresence: (
+    userId: string
+  ) => Promise<{ userId: string; isOnline: boolean }>;
+
+  subscribeToPresence: (
+    callback: (userId: string, isOnline: boolean) => void
+  ) => void;
+  unsubscribeFromPresence: () => void;
 }

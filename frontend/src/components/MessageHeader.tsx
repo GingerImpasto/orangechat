@@ -1,19 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { UserType } from "../types";
 import "../styles/MessageHeader.css";
 import VideoCallManager from "./VideoCallManager";
+import { useSocket } from "../context/SocketContext";
 
 interface MessageHeaderProps {
   selectedUser: UserType | null;
   currentUserId?: string;
-  isConnected: boolean;
 }
 
 const MessageHeader: React.FC<MessageHeaderProps> = ({
   selectedUser,
   currentUserId,
-  isConnected,
 }) => {
+  const [isOnline, setIsOnline] = useState(false);
+  const { checkPresence, subscribeToPresence, unsubscribeFromPresence } =
+    useSocket();
+
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    // Check initial presence status
+    const checkInitialPresence = async () => {
+      try {
+        const response = await checkPresence(selectedUser.id);
+        setIsOnline(response.isOnline);
+      } catch (error) {
+        console.error("Failed to check initial presence:", error);
+        setIsOnline(false); // Default to offline if check fails
+      }
+    };
+
+    checkInitialPresence();
+
+    // Subscribe to real-time updates
+    const handlePresenceUpdate = (userId: string, isOnline: boolean) => {
+      if (selectedUser.id === userId) {
+        setIsOnline(isOnline);
+      }
+    };
+
+    subscribeToPresence(handlePresenceUpdate);
+
+    return () => {
+      unsubscribeFromPresence();
+    };
+  }, [selectedUser?.id]); // Re-run when selected user changes
+
   if (!selectedUser) return null;
 
   return (
@@ -31,15 +64,14 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             {selectedUser.firstName} {selectedUser.lastName}
           </h3>
           <p className="message-header-status">
-            {isConnected ? "Online" : "Offline"}
+            {isOnline ? "Online" : "Offline"}
           </p>
         </div>
       </div>
       <div className="message-header-actions">
-        {/* Video Call Manager handles all call-related UI and logic */}
         <VideoCallManager
           selectedUser={selectedUser}
-          isConnected={isConnected}
+          isConnected={isOnline}
           currentUserId={currentUserId}
         />
       </div>

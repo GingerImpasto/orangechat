@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { io, Socket } from "socket.io-client";
-import { SocketContextType } from "../types/socketTypes";
+import { SocketContextType, UserPresence } from "../types/socketTypes";
 import { UserType } from "../types";
 
 const SocketContext = createContext<SocketContextType>({
@@ -24,6 +24,9 @@ const SocketContext = createContext<SocketContextType>({
   subscribeToCallRejection: () => {},
   subscribeToCallEnd: () => {},
   unsubscribeFromCallEvents: () => {},
+  checkPresence: async () => ({ userId: "", isOnline: false }),
+  subscribeToPresence: () => {},
+  unsubscribeFromPresence: () => {},
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -51,6 +54,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   >(null);
   const callEndCallbackRef = useRef<
     ((data: { userId: string }) => void) | null
+  >(null);
+  const presenceCallbackRef = useRef<
+    ((userId: string, isOnline: boolean) => void) | null
   >(null);
 
   // Watch for token changes
@@ -130,6 +136,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         callEndCallbackRef.current?.(data);
       };
 
+      const handlePresenceUpdate = (data: {
+        userId: string;
+        isOnline: boolean;
+      }) => {
+        presenceCallbackRef.current?.(data.userId, data.isOnline);
+      };
       // Event listeners
       newSocket.on("connect", handleConnect);
       newSocket.on("disconnect", handleDisconnect);
@@ -138,6 +150,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
       newSocket.on("ice-candidate", handleICECandidate);
       newSocket.on("call-rejected", handleCallRejection);
       newSocket.on("call-ended", handleCallEnd);
+      newSocket.on("presence-update", handlePresenceUpdate);
       newSocket.on("connect_error", (err) => {
         console.error("Connection error:", err);
         setIsConnected(false);
@@ -153,6 +166,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         newSocket.off("ice-candidate", handleICECandidate);
         newSocket.off("call-rejected", handleCallRejection);
         newSocket.off("call-ended", handleCallEnd);
+        newSocket.off("presence-update", handlePresenceUpdate);
+
         newSocket.off("connect_error");
         if (newSocket.connected) {
           newSocket.disconnect();
@@ -292,6 +307,44 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     callEndCallbackRef.current = null;
   }, []);
 
+  const checkPresence = useCallback(async (userId: string) => {
+    if (!socketRef.current?.connected) {
+      throw new Error("WebSocket not connected");
+    }
+
+    return new Promise<{ userId: string; isOnline: boolean }>(
+      (resolve, reject) => {
+        if (!socketRef.current) {
+          reject(new Error("Socket not initialized"));
+          return;
+        }
+
+        socketRef.current.emit(
+          "check-presence",
+          { userId },
+          (response: UserPresence) => {
+            if (response) {
+              resolve(response);
+            } else {
+              reject(new Error("Failed to check presence"));
+            }
+          }
+        );
+      }
+    );
+  }, []);
+
+  const subscribeToPresence = useCallback(
+    (callback: (userId: string, isOnline: boolean) => void) => {
+      presenceCallbackRef.current = callback;
+    },
+    []
+  );
+
+  const unsubscribeFromPresence = useCallback(() => {
+    presenceCallbackRef.current = null;
+  }, []);
+
   const value = {
     socket: socketRef.current,
     isConnected,
@@ -308,6 +361,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     subscribeToCallRejection,
     subscribeToCallEnd,
     unsubscribeFromCallEvents,
+    checkPresence,
+    subscribeToPresence,
+    unsubscribeFromPresence,
   };
 
   return (

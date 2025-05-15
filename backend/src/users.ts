@@ -233,6 +233,39 @@ export async function deleteUserRecord(userId: string): Promise<void> {
 }
 
 /**
+ * Fetches all friend IDs for a given user
+ * @param userId The ID of the user to get friends for
+ * @returns Array of friend IDs
+ */
+export async function getFriendIds(userId: string): Promise<string[]> {
+  try {
+    // Query the friends table where the user is either userId or friendId
+    const { data: friends, error } = await supabase
+      .from("friends")
+      .select("userId, friendId")
+      .or(`userId.eq.${userId},friendId.eq.${userId}`);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!friends || friends.length === 0) {
+      return [];
+    }
+
+    // Extract friend IDs by checking both columns
+    const friendIds = friends.map((friend) => {
+      return friend.userId === userId ? friend.friendId : friend.userId;
+    });
+
+    return friendIds;
+  } catch (error) {
+    console.error("Error in getFriendIds:", error);
+    throw error;
+  }
+}
+
+/**
  * Deletes all friend requests where the user is either sender or receiver
  * @param userId The ID of the user to delete requests for
  */
