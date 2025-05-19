@@ -80,7 +80,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!token) return;
 
     if (!socketRef.current || socketRef.current.disconnected) {
-      const newSocket = io("http://localhost:5000", {
+      const newSocket = io("/", {
         transports: ["websocket", "polling"],
         auth: { token },
         transportOptions: {
