@@ -1,38 +1,26 @@
 // ProtectedRoute.tsx
 import React from "react";
 import { Outlet, useNavigate } from "react-router";
-import { useAuth } from "../context/AuthContext";
-import { useEffect, useState } from "react";
 import Loader from "../components/Loader";
+import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
 const ProtectedRoute: React.FC = () => {
-  const { validateToken, token, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const [authStatus, setAuthStatus] = useState<
-    "checking" | "valid" | "invalid"
-  >("checking");
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const isValid = await validateToken();
-      setAuthStatus(isValid ? "valid" : "invalid");
-      if (!isValid) {
-        navigate("/login");
-      }
-    };
+    if (!loading && !isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, loading, navigate]);
 
-    checkAuth();
-  }, [validateToken, navigate, token]);
-
-  if (loading || authStatus === "checking") {
+  if (loading) {
+    console.log("Loading...");
     return <Loader />;
   }
 
-  if (authStatus === "invalid") {
-    return null; // Prevents outlet flash while redirecting
-  }
-
-  return <Outlet />;
+  return isAuthenticated ? <Outlet /> : null;
 };
 
 export default ProtectedRoute;

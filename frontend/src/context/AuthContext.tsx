@@ -1,13 +1,18 @@
 // AuthContext.tsx
-import React, { createContext, useContext, useState } from "react";
 import { UserType, AuthContextType } from "../types";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  //const [isLoading, setIsLoading] = useState(true); // Initialize as true
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token") || null
   );
@@ -16,60 +21,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ? JSON.parse(localStorage.getItem("user")!)
       : null
   );
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!localStorage.getItem("token")
+  );
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const login = (newToken: string, newUser: UserType) => {
-    localStorage.setItem("token", newToken);
-    localStorage.setItem("user", JSON.stringify(newUser));
-    setToken(newToken);
-    setUser(newUser);
-    setIsAuthenticated(true);
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-  };
+  }, []);
 
-  const validateToken = async (): Promise<boolean> => {
-    setLoading(true); // Start loading
-
+  const validateToken = useCallback(async (): Promise<boolean> => {
+    setLoading(true);
     const storedToken = localStorage.getItem("token");
+
     if (!storedToken) {
-      setLoading(false); // Stop loading
+      setLoading(false);
       return false;
     }
 
     try {
-      // Send token to backend for validation
       const response = await fetch("/login/validate-token", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
-        },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
 
       if (response.ok) {
         setIsAuthenticated(true);
-        setLoading(false); // Stop loading
+        setToken(storedToken);
+        setLoading(false);
         return true;
-      } else {
-        logout();
-        setLoading(false); // Stop loading
-        setIsAuthenticated(false);
-        return false;
       }
-    } catch (error) {
-      console.error("Token validation failed:", error);
-      setLoading(false); // Stop loading
+
       logout();
       return false;
+    } catch (error) {
+      console.error("Token validation failed:", error);
+      logout();
+      return false;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [logout]);
+
+  // Initialize auth state on mount
+  useEffect(() => {
+    validateToken();
+  }, [validateToken]);
+
+  const login = useCallback((newToken: string, newUser: UserType) => {
+    localStorage.setItem("token", newToken);
+    localStorage.setItem("user", JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+    setIsAuthenticated(true);
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -89,10 +98,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
+
+// 3. Export the context itself if needed elsewhere
+export default AuthContext;
